@@ -437,8 +437,6 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
         <p class="lead">Preencha ao lado e nosso time entra em contato com um diagnóstico inicial gratuito da sua estrutura digital.</p>
         <div class="cinfo">
           <a href="https://instagram.com/mythosagency_" target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#A640FF" stroke="none"/></svg></span>@mythosagency_</a>
-          <a href="https://wa.me/5548996661578?text=Ol%C3%A1!%20Vim%20pela%20p%C3%A1gina%20da%20Mythos%20e%20quero%20um%20diagn%C3%B3stico." target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg></span>WhatsApp Brasil · (48) 99666-1578</a>
-          <a href="https://wa.me/595982648554?text=%C2%A1Hola!%20Vine%20por%20la%20p%C3%A1gina%20de%20Mythos%20y%20quiero%20un%20diagn%C3%B3stico." target="_blank" rel="noopener"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg></span>WhatsApp Paraguai · (0982) 648554</a>
           <span><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 7l8 6 8-6"/></svg></span>mythosinmarketing@gmail.com</span>
         </div>
       </div>
@@ -515,8 +513,6 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
     <div>
       <h4>Contato</h4>
       <a href="https://instagram.com/mythosagency_" target="_blank" rel="noopener">@mythosagency_</a>
-      <a href="https://wa.me/5548996661578?text=Ol%C3%A1!%20Vim%20pela%20p%C3%A1gina%20da%20Mythos%20e%20quero%20um%20diagn%C3%B3stico." target="_blank" rel="noopener">WhatsApp Brasil</a>
-      <a href="https://wa.me/595982648554?text=%C2%A1Hola!%20Vine%20por%20la%20p%C3%A1gina%20de%20Mythos%20y%20quiero%20un%20diagn%C3%B3stico." target="_blank" rel="noopener">WhatsApp Paraguai</a>
       <a href="mailto:mythosinmarketing@gmail.com">mythosinmarketing@gmail.com</a>
       <span style="display:block;font-size:14px;color:var(--txt);padding:5px 0">Brasil &amp; Paraguai</span>
     </div>
@@ -540,6 +536,16 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
 
   /* ---------- scroll nativo (Lenis removido a pedido — voltou ao de antes) ---------- */
   const lenis = null;
+
+  /* ---------- sempre começar no topo ao (re)carregar (PC + mobile) ---------- */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  const toTop = () => window.scrollTo(0, 0);
+  toTop();
+  // rola pro topo ANTES de sair: não sobra posição pra o navegador restaurar
+  window.addEventListener('beforeunload', toTop);
+  window.addEventListener('pagehide', toTop);
+  // reforça depois que tudo carrega e depois que o GSAP/pin se ajusta
+  window.addEventListener('load', () => { toTop(); requestAnimationFrame(toTop); setTimeout(toTop, 60); });
 
   /* ---------- NAV ---------- */
   const hdr = document.getElementById('hdr');
@@ -653,16 +659,26 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
       let max=0; words.forEach(w=>{ probe.textContent=w; max=Math.max(max,probe.offsetWidth); });
       probe.remove(); host.style.width=Math.ceil(max)+'px';
       let i=0;
-      setInterval(()=>{
+      function sanitize(){ // garante 1 só palavra (remove sobras de quando a aba ficou oculta)
+        const all=host.querySelectorAll('.rot-word');
+        for(let k=0;k<all.length-1;k++) all[k].remove();
+        const last=host.querySelector('.rot-word');
+        if(last && window.gsap) gsap.set(last,{yPercent:0});
+      }
+      function tick(){
+        if(document.hidden) return;            // não anima com a aba em segundo plano
+        sanitize();
         i=(i+1)%words.length;
         const cur=host.querySelector('.rot-word');
         const next=document.createElement('span'); next.className='rot-word'; next.textContent=words[i];
         host.appendChild(next);
         if(window.gsap){
           gsap.fromTo(next,{yPercent:115},{yPercent:0,duration:.6,ease:'power3.inOut'});
-          gsap.to(cur,{yPercent:-115,duration:.6,ease:'power3.inOut',onComplete:()=>cur.remove()});
-        } else { cur.remove(); }
-      },2400);
+          gsap.to(cur,{yPercent:-115,duration:.6,ease:'power3.inOut',onComplete:()=>{ if(cur) cur.remove(); }});
+        } else if(cur){ cur.remove(); }
+      }
+      setInterval(tick,2400);
+      document.addEventListener('visibilitychange',()=>{ if(!document.hidden) sanitize(); });
     }
     if(document.fonts && document.fonts.ready){ document.fonts.ready.then(setup); } else { setup(); }
   })();
