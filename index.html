@@ -274,8 +274,12 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
 /* ============ REVEAL ============ */
 .word{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em}
 .word-i{display:inline-block;will-change:transform}
-.rot{display:inline-block;position:relative;overflow:hidden;vertical-align:bottom;height:1.2em}
-.rot-word{position:absolute;left:0;right:0;bottom:0;text-align:center;white-space:nowrap;will-change:transform}
+/* sem a classe .js a palavra flui normal: se o JS não rodar (reduced-motion, erro, CDN fora)
+   o .rot teria largura 0 e o overflow cortaria a palavra — a manchete terminava em "Precisa de" */
+.rot{display:inline-block;position:relative;vertical-align:bottom}
+.rot-word{white-space:nowrap}
+.rot.js{overflow:hidden;height:1.2em}
+.rot.js .rot-word{position:absolute;left:0;right:0;bottom:0;text-align:center;will-change:transform}
 .reveal{opacity:0;transform:translateY(30px)}
 .reveal.in{opacity:1;transform:none;transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)}
 
@@ -302,8 +306,12 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
 }
 @media(max-width:560px){
   form{grid-template-columns:1fr}
-  .values{grid-template-columns:1fr}
   section{padding:66px 20px}
+  /* "24/7" estourava a célula e criava scroll horizontal de ~5px */
+  .kpis{gap:14px}
+  .kpi{padding:30px 14px}
+  .kpi .n{font-size:clamp(34px,9.5vw,74px)}
+  .kpi .l{max-width:none}
   .foot{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){
@@ -346,7 +354,8 @@ window.MYTHOS = {
     if (algum) try { localStorage.setItem(chave, JSON.stringify(achou)); } catch(e){}
     var salvo = {};
     try { salvo = JSON.parse(localStorage.getItem(chave) || '{}'); } catch(e){}
-    return algum ? achou : salvo;   // first-touch: só sobrescreve quando a URL traz parâmetro novo
+    // último clique vence, mas sobrevive à navegação interna: sem parâmetro na URL, usa o guardado
+    return algum ? achou : salvo;
   }
 
   T.utms = store('_mythos_utms', ['utm_source','utm_medium','utm_campaign','utm_term','utm_content']);
@@ -426,7 +435,7 @@ window.MYTHOS = {
       <a href="#sobre">Sobre</a>
       <a href="#contato" class="btn">Falar com a Mythos</a>
     </div>
-    <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="navlinks"><span></span><span></span><span></span></button>
   </nav>
 </header>
 
@@ -592,7 +601,7 @@ window.MYTHOS = {
           <div class="field">
             <label for="cnpj">CNPJ/RUC</label>
             <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" inputmode="numeric">
-            <span class="err-msg">CNPJ inválido.</span>
+            <span class="err-msg">Informe um CNPJ (14 dígitos) ou um RUC válido.</span>
           </div>
           <div class="field">
             <label for="faturamento">Faturamento mensal <span class="req">*</span></label>
@@ -697,14 +706,15 @@ window.MYTHOS = {
   const navlinks = document.getElementById('navlinks');
   const onScrollNav = () => hdr.classList.toggle('scrolled', window.scrollY > 40);
   onScrollNav(); window.addEventListener('scroll', onScrollNav, {passive:true});
-  burger.addEventListener('click', () => {
-    const open = navlinks.classList.toggle('open');
+  const setMenu = open => {
+    navlinks.classList.toggle('open', open);
     burger.classList.toggle('x', open);
     document.body.classList.toggle('no-scroll', open);
-  });
-  navlinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-    navlinks.classList.remove('open'); burger.classList.remove('x'); document.body.classList.remove('no-scroll');
-  }));
+    burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+  burger.addEventListener('click', () => setMenu(!navlinks.classList.contains('open')));
+  navlinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
 
   /* ---------- REVEAL on scroll ---------- */
   if (window.gsap && window.ScrollTrigger && !reduce){
@@ -721,7 +731,13 @@ window.MYTHOS = {
     const cx=sky.getContext('2d');
     let W=0,H=0,stars=[],last=0; const FRAME=1000/30;
     function init(){
-      W=sky.width=innerWidth; H=sky.height=innerHeight; stars=[];
+      // sem escalar pelo devicePixelRatio as estrelas saem borradas em tela retina
+      const dpr=Math.min(window.devicePixelRatio||1,2);
+      W=innerWidth; H=innerHeight;
+      sky.width=Math.round(W*dpr); sky.height=Math.round(H*dpr);
+      sky.style.width=W+'px'; sky.style.height=H+'px';
+      cx.setTransform(dpr,0,0,dpr,0,0);
+      stars=[];
       const n=Math.min(reduce?100:190, Math.floor(W*H/8500));
       for(let i=0;i<n;i++) stars.push({
         x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.3+.3,
@@ -797,6 +813,7 @@ window.MYTHOS = {
     const host=document.getElementById('heroRot'); if(!host || reduce) return;
     const words=['estrutura','autoridade','resultado','história'];
     function setup(){
+      host.classList.add('js');
       const probe=document.createElement('span');
       probe.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;font:inherit;letter-spacing:inherit';
       host.appendChild(probe);
@@ -893,7 +910,19 @@ window.MYTHOS = {
         window.scrollTo({ top:y, behavior:'smooth' });
       }));
     } else {
-      place(0); // mobile/reduced: lista estática já montada
+      // sem scrub (reduced-motion ou GSAP fora do ar) a roda não gira sozinha:
+      // sem clique nos nós, 4 dos 5 serviços ficariam inalcançáveis no desktop
+      place(0);
+      const irPara = i => place(N > 1 ? i / (N - 1) : 0);
+      nodeEls.forEach((n,i)=> n.addEventListener('click', ()=> irPara(i)));
+      dotEls.forEach((d,i)=>{
+        d.style.cursor='pointer';
+        d.setAttribute('role','button');
+        d.setAttribute('tabindex','0');
+        d.setAttribute('aria-label', S[i].title);
+        d.addEventListener('click', ()=> irPara(i));
+        d.addEventListener('keydown', ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); irPara(i); } });
+      });
     }
   })();
 
@@ -922,18 +951,28 @@ window.MYTHOS = {
     e.target.value=v;
   });
   const cnpj=document.getElementById('cnpj');
+  // RUC do Paraguai tem 6-9 dígitos: só formata como CNPJ quando o número claramente é um,
+  // senão um lead do PY não consegue preencher o próprio documento
   cnpj.addEventListener('input', e=>{
-    let v=e.target.value.replace(/\D/g,'').slice(0,14);
-    v=v.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3')
-       .replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2');
-    e.target.value=v;
+    const d=e.target.value.replace(/\D/g,'').slice(0,14);
+    e.target.value = d.length<12 ? d
+      : d.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3')
+         .replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2');
   });
 
   /* ---------- VALIDAÇÃO + SUBMIT ---------- */
   const form=document.getElementById('leadForm');
   const success=document.getElementById('success');
   const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-  function setError(field,on){ field.closest('.field').classList.toggle('error', on); }
+  // liga cada mensagem de erro ao seu campo, senão leitor de tela não anuncia o motivo
+  form.querySelectorAll('.field').forEach(fd=>{
+    const msg=fd.querySelector('.err-msg'), inp=fd.querySelector('input,select');
+    if(msg&&inp){ msg.id='err-'+inp.id; inp.setAttribute('aria-describedby',msg.id); }
+  });
+  function setError(field,on){
+    field.closest('.field').classList.toggle('error', on);
+    field.setAttribute('aria-invalid', on ? 'true' : 'false');
+  }
   form.addEventListener('submit', e=>{
     e.preventDefault();
     let ok=true;
@@ -943,7 +982,8 @@ window.MYTHOS = {
     if(telefone.value.replace(/\D/g,'').length<10){setError(telefone,true);ok=false;}else setError(telefone,false);
     if(!empresa.value.trim()){setError(empresa,true);ok=false;}else setError(empresa,false);
     const cd=cnpjF.value.replace(/\D/g,'');
-    if(cd.length>0 && cd.length<14){setError(cnpjF,true);ok=false;}else setError(cnpjF,false);
+    const docOk = cd.length===0 || cd.length===14 || (cd.length>=6 && cd.length<=9); // CNPJ ou RUC
+    if(!docOk){setError(cnpjF,true);ok=false;}else setError(cnpjF,false);
     if(!fat.value){setError(fat,true);ok=false;}else setError(fat,false);
     if(!ok){ const f=form.querySelector('.field.error'); if(f) f.scrollIntoView({behavior:'smooth',block:'center'}); return; }
     const T=window._mythosTrack, C=window.MYTHOS;
