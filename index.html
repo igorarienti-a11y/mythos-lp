@@ -708,8 +708,7 @@ window.MYTHOS = {
      intercepta a roda e interpola posicao a cada frame.
      Padrao validado em producao no site-digitha.
      ------------------------------------------------------------- */
-  const SUAVIDADE = 0.075;          // 0.04 lento · 0.075 equilibrado · 0.10 responsivo
-  let lerpAtivo = false;
+  const SUAVIDADE = 0.055;          // 0.04 lento · 0.055 suave · 0.10 responsivo
   if (window.gsap && window.ScrollTrigger && !reduce && window.innerWidth > 768) {
     ScrollTrigger.config({ ignoreMobileResize: true });   // sem fastScrollEnd: corta o momentum
     gsap.ticker.lagSmoothing(0);                          // a compensacao de lag causa micro-saltos
@@ -717,6 +716,11 @@ window.MYTHOS = {
     let alvoY = window.scrollY;
     let atualY = window.scrollY;
     const limite = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    // Firefox entrega a roda em LINHAS (deltaMode 1) e alguns mouses em PAGINAS (2).
+    // Sem converter para pixel o giro anda ~3px e o lerp parece travado.
+    const emPixels = e => e.deltaMode === 1 ? e.deltaY * 16
+                        : e.deltaMode === 2 ? e.deltaY * window.innerHeight
+                        : e.deltaY;
 
     window.addEventListener('wheel', e => {
       // ctrl+roda e zoom do navegador: nao sequestrar, senao quebra o zoom
@@ -724,20 +728,21 @@ window.MYTHOS = {
       // menu mobile aberto: trava a pagina, nao rola por baixo
       if (document.body.classList.contains('no-scroll')) { e.preventDefault(); return; }
       e.preventDefault();
-      alvoY = Math.max(0, Math.min(limite(), alvoY + e.deltaY));
+      alvoY = Math.max(0, Math.min(limite(), alvoY + emPixels(e)));
     }, { passive: false });
 
-    gsap.ticker.add(() => {
+    gsap.ticker.add((tempo, dt) => {
       // se algo moveu a pagina para longe sem passar pelo lerp, adota a posicao real
       if (Math.abs(window.scrollY - atualY) > 200) { atualY = alvoY = window.scrollY; }
       const dif = alvoY - atualY;
       if (Math.abs(dif) > 0.1) {
-        atualY += dif * SUAVIDADE;
-        lerpAtivo = true;
-        window.scrollTo(0, atualY);
+        // o passo e por frame de 60fps; convertido para o frame real, o deslize
+        // dura o mesmo tempo em 144Hz e em 60Hz (antes terminava 2x mais rapido)
+        atualY += dif * (1 - Math.pow(1 - SUAVIDADE, Math.min(dt, 50) / 16.667));
+        // 'instant' anula o html{scroll-behavior:smooth}: sem isso o navegador
+        // ainda suaviza cada frame do lerp e as duas suavizacoes brigam
+        window.scrollTo({ top: atualY, behavior: 'instant' });
         ScrollTrigger.update();
-      } else {
-        lerpAtivo = false;
       }
     });
 
