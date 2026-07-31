@@ -18,7 +18,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@1&family=IBM+Plex+Mono:wght@400;500;600&family=Montserrat:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600&family=DM+Serif+Display:ital@1&family=Montserrat:wght@400;500;600;800;900&display=swap" rel="stylesheet">
 
 <style>
 /* =========================================================================
@@ -31,19 +31,32 @@
    4. Tipografia em escala bruta: o H1 ocupa a largura, não o centro.
    ========================================================================= */
 :root{
-  --branco:#FFFFFF;
+  /* branco levemente puxado para o roxo da marca: branco puro não existe na
+     natureza e deixa a página com cara de documento, não de peça */
+  --branco:#FDFCFE;
   --osso:#F2EEF5;
   --tinta:#0A0710;
-  --tinta-60:rgba(10,7,16,.60);
-  --tinta-40:rgba(10,7,16,.40);
+  /* Os dois tons de texto passam WCAG AA sobre --branco.
+     --tinta-40 estava em .40 = 2,73:1 e reprovava em label, nota e rótulo. */
+  --tinta-60:rgba(10,7,16,.72);
+  --tinta-40:rgba(10,7,16,.60);
+  /* só para traço e ícone, nunca para texto */
+  --tinta-deco:rgba(10,7,16,.40);
   --roxo:#5C068C;
   --roxo-esc:#3B0459;
   --roxo-cl:#7B1FB0;
   --neon:#A640FF;
   --linha:rgba(10,7,16,.14);
   --linha-inv:rgba(255,255,255,.22);
+  /* sobre --tinta, .40 dava 3,75:1 no rodapé */
+  --branco-mut:rgba(255,255,255,.62);
   --max:1320px;
-  --mono:'IBM Plex Mono',ui-monospace,monospace;
+
+  /* escala de espaço 4pt — antes os valores eram avulsos (26, 34, 46, 54...) */
+  --s-1:4px;  --s-2:8px;  --s-3:12px; --s-4:16px; --s-5:24px;
+  --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px;
+
+  --mono:'Azeret Mono',ui-monospace,'Cascadia Mono',monospace;
   --sans:'Montserrat',system-ui,sans-serif;
   --serif:'DM Serif Display',Georgia,serif;
 }
@@ -55,7 +68,10 @@ body.no-scroll{overflow:hidden}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
 ::selection{background:var(--roxo);color:#fff}
-:focus-visible{outline:3px solid var(--neon);outline-offset:3px}
+:focus-visible{outline:3px solid var(--roxo);outline-offset:3px}
+/* sobre bloco roxo o anel roxo desaparece: inverte para branco */
+.inv :focus-visible,.dark-zone :focus-visible,header.over-dark :focus-visible{outline-color:#fff}
+.inv .form-card :focus-visible{outline-color:var(--roxo)}
 
 /* ---------- primitivos ---------- */
 /* width:100% é obrigatório: dentro de um flex container em coluna (.svc-stage) o
@@ -124,7 +140,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:60;background:rgba(255,255,25
 header.over-dark{background:rgba(59,4,89,.92);border-color:var(--linha-inv);color:#fff}
 .nav{max-width:var(--max);margin:0 auto;display:flex;align-items:center;justify-content:space-between;
   padding:0 clamp(20px,4vw,56px);height:68px}
-.brand{font-weight:900;letter-spacing:.28em;font-size:17px;padding-left:.28em}
+.brand{font-weight:900;letter-spacing:.28em;font-size:17px;padding:var(--s-3) 0 var(--s-3) .28em}
 .nav-links{display:flex;align-items:center;gap:34px}
 .nav-links a{font-family:var(--mono);font-size:12.5px;font-weight:500;letter-spacing:.1em;
   text-transform:uppercase;position:relative;opacity:.7;transition:opacity .2s}
@@ -137,12 +153,13 @@ header.over-dark{background:rgba(59,4,89,.92);border-color:var(--linha-inv);colo
 .nav-links a.btn::after{left:auto;bottom:auto;width:auto;height:auto;background:var(--tinta)}
 .progress{position:absolute;left:0;bottom:-1px;height:2px;background:var(--roxo);width:0;z-index:2}
 header.over-dark .progress{background:#fff}
-.burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:10px;z-index:70}
+.burger{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;
+  background:none;border:0;cursor:pointer;min-width:46px;min-height:46px;z-index:70}
 .burger span{width:26px;height:2px;background:currentColor;transition:transform .3s,opacity .2s}
 
 /* =========================== HERO =========================== */
 .hero{padding:calc(68px + clamp(48px,9vh,110px)) 0 0;background:var(--branco)}
-.hero h1{margin:26px 0 0}
+.hero h1{margin:var(--s-5) 0 0}
 .hero .sub{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;
   margin-top:clamp(34px,5vh,60px);padding-bottom:clamp(38px,6vh,64px)}
 .hero .ctas{display:flex;flex-wrap:wrap;gap:14px}
@@ -197,9 +214,9 @@ header.over-dark .progress{background:#fff}
   letter-spacing:-.07em;line-height:1;color:var(--osso);z-index:0;pointer-events:none;user-select:none}
 .panel-in>*{position:relative;z-index:1}
 .panel-in .num{font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.2em;color:var(--roxo)}
-.panel-in h3{font-size:clamp(28px,3.5vw,50px);margin:16px 0 18px;line-height:.95}
+.panel-in h3{font-size:clamp(28px,3.5vw,50px);margin:var(--s-4) 0 var(--s-4);line-height:.95}
 .panel-in p{font-size:clamp(15px,1.15vw,17.5px);color:var(--tinta-60);max-width:42ch;font-weight:500}
-.panel-in ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:30px}
+.panel-in ul{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:var(--s-6)}
 .panel-in li{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
   padding:9px 14px;box-shadow:inset 0 0 0 1px var(--linha);color:var(--tinta-60)}
 .svc-foot{display:flex;justify-content:space-between;align-items:center;gap:24px}
@@ -210,11 +227,11 @@ header.over-dark .progress{background:#fff}
 
 /* ==================== CASE ==================== */
 #case{background:var(--branco)}
-.case-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(36px,5vw,88px);align-items:center;margin-top:54px}
+.case-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(32px,5vw,88px);align-items:center;margin-top:var(--s-8)}
 .case-meta dt{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--tinta-40);margin-top:24px}
 .case-meta dd{font-size:16.5px;font-weight:600;margin-top:7px;max-width:38ch}
-.bars{display:flex;flex-direction:column;gap:34px}
+.bars{display:flex;flex-direction:column;gap:var(--s-6)}
 .bar-row .bl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 .bar-row .bn{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-40)}
 .bar-row .bv{font-weight:900;font-size:clamp(30px,4.6vw,64px);letter-spacing:-.045em;line-height:1}
@@ -224,21 +241,21 @@ header.over-dark .progress{background:#fff}
 .bar-row.hi .bar i{background:var(--roxo)}
 .case-x{font-weight:900;font-size:clamp(40px,7vw,96px);letter-spacing:-.05em;line-height:1;
   color:var(--roxo);margin-top:8px}
-.case-note{font-family:var(--mono);font-size:12.5px;color:var(--tinta-40);margin-top:34px;
-  padding-top:20px;border-top:1px solid var(--linha);max-width:60ch}
+.case-note{font-family:var(--mono);font-size:12.5px;color:var(--tinta-40);margin-top:var(--s-6);
+  padding-top:var(--s-5);border-top:1px solid var(--linha);max-width:60ch}
 
 /* ==================== MÉTODO ==================== */
 #metodo{background:var(--osso)}
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.4vw,34px);margin-top:60px;position:relative}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,2.4vw,32px);margin-top:var(--s-8);position:relative}
 .step{position:relative;padding-top:34px;border-top:2px solid var(--linha)}
 /* no desktop quem marca o avanço é a linha desenhada (DrawSVG) por cima;
    abaixo de 1025px a linha é escondida, então o trilho volta a ser a borda */
 .step.on{border-top-color:var(--roxo)}
 @media(min-width:1025px){ .step.on{border-top-color:var(--linha)} }
 .step .sn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--roxo)}
-.step h3{font-size:clamp(20px,2.05vw,29px);margin:14px 0 12px;line-height:1.02}
+.step h3{font-size:clamp(20px,2.05vw,29px);margin:var(--s-3) 0 var(--s-3);line-height:1.02}
 .step p{font-size:15px;color:var(--tinta-60);font-weight:500}
-.loop{margin-top:52px;display:flex;align-items:center;gap:18px;font-family:var(--mono);
+.loop{margin-top:var(--s-7);display:flex;align-items:center;gap:18px;font-family:var(--mono);
   font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--roxo)}
 .loop svg{width:26px;height:26px;stroke:var(--roxo);fill:none;stroke-width:2;flex:0 0 auto}
 /* width:100% explícito: SVG é elemento substituído e cai na largura intrínseca
@@ -257,7 +274,7 @@ header.over-dark .progress{background:#fff}
 /* ==================== CONTATO ==================== */
 #contato{background:var(--roxo);color:#fff}
 .ct-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:clamp(36px,5vw,80px);align-items:start;margin-top:48px}
-.cinfo{display:flex;flex-direction:column;gap:2px;margin-top:34px;border-top:1px solid var(--linha-inv)}
+.cinfo{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-6);border-top:1px solid var(--linha-inv)}
 .cinfo a,.cinfo span.ci{display:flex;align-items:center;gap:16px;padding:19px 0;
   border-bottom:1px solid var(--linha-inv);font-family:var(--mono);font-size:13.5px;letter-spacing:.04em;
   transition:padding-left .3s cubic-bezier(.2,.75,.2,1)}
@@ -272,7 +289,7 @@ form{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 label{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-40)}
 label .req{color:var(--roxo)}
 input,select{font-family:var(--sans);font-size:15.5px;font-weight:600;color:var(--tinta);background:transparent;
-  border:0;border-bottom:2px solid var(--linha);padding:11px 0;width:100%;
+  border:0;border-bottom:2px solid var(--linha);padding:12px 0;min-height:46px;width:100%;
   transition:border-color .22s}
 input::placeholder{color:var(--tinta-40);font-weight:500}
 input:focus,select:focus{outline:none;border-bottom-color:var(--roxo)}
@@ -290,7 +307,7 @@ form .btn{grid-column:1/-1;width:100%;margin-top:10px;padding:22px}
 .form-note{grid-column:1/-1;font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--tinta-40)}
 .success{display:none;padding:24px 0}
 .success.show{display:block}
-.success .ck{width:56px;height:56px;background:var(--roxo);display:grid;place-items:center;margin-bottom:22px}
+.success .ck{width:56px;height:56px;background:var(--roxo);display:grid;place-items:center;margin-bottom:var(--s-5)}
 .success .ck svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:2.6}
 .success h3{font-size:32px;margin-bottom:12px}
 .success p{color:var(--tinta-60);max-width:40ch;font-weight:500}
@@ -301,11 +318,11 @@ footer{background:var(--tinta);color:#fff;padding:clamp(56px,8vh,90px) 0 36px}
 .foot .slogan{font-family:var(--serif);font-style:italic;font-size:19px;color:rgba(255,255,255,.62);
   margin-top:16px;max-width:26ch}
 .foot h4{font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
-  color:rgba(255,255,255,.4);margin-bottom:18px}
-.foot a,.foot .fi{display:block;font-size:14.5px;color:rgba(255,255,255,.75);padding:6px 0;transition:color .2s}
+  color:var(--branco-mut);margin-bottom:var(--s-4)}
+.foot a,.foot .fi{display:block;font-size:14.5px;color:rgba(255,255,255,.75);padding:11px 0;transition:color .2s}
 .foot a:hover{color:#fff}
-.foot-bottom{margin-top:52px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);
-  font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.4);
+.foot-bottom{margin-top:var(--s-7);padding-top:var(--s-5);border-top:1px solid rgba(255,255,255,.14);
+  font-family:var(--mono);font-size:11.5px;color:var(--branco-mut);
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 /* ==================== FLUTUANTES ==================== */
@@ -580,7 +597,7 @@ window.MYTHOS = {
 <section id="servicos" class="inv dark-zone">
   <div class="wrap svc-intro">
     <span class="lbl rv">O que fazemos</span>
-    <h2 class="h-lg rv" style="margin:22px 0 20px;max-width:16ch">Cinco frentes. Uma estrutura só.</h2>
+    <h2 class="h-lg rv" style="margin:var(--s-5) 0 var(--s-5);max-width:16ch">Cinco frentes. Uma estrutura só.</h2>
     <p class="lead rv">Cada peça alimenta a próxima: o tráfego abastece, a página converte,
       a automação responde, o conteúdo sustenta e o dado corrige a rota. Separadas, viram custo.</p>
   </div>
@@ -664,7 +681,7 @@ window.MYTHOS = {
 <section id="case" class="pad">
   <div class="wrap">
     <span class="lbl rv">Prova</span>
-    <h2 class="h-lg rv" style="margin:22px 0 0;max-width:18ch">O que acontece quando a estrutura entra.</h2>
+    <h2 class="h-lg rv" style="margin:var(--s-5) 0 0;max-width:18ch">O que acontece quando a estrutura entra.</h2>
 
     <div class="case-grid">
       <dl class="case-meta rv">
@@ -699,7 +716,7 @@ window.MYTHOS = {
 <section id="metodo" class="pad">
   <div class="wrap">
     <span class="lbl rv">Como funciona</span>
-    <h2 class="h-lg rv" style="margin:22px 0 20px;max-width:15ch">Quatro etapas que não param de girar.</h2>
+    <h2 class="h-lg rv" style="margin:var(--s-5) 0 var(--s-5);max-width:15ch">Quatro etapas que não param de girar.</h2>
     <p class="lead rv">Não é campanha, é ciclo. A quarta etapa alimenta a primeira, e por isso
       a conta fica melhor no mês seis do que estava no mês um.</p>
 
@@ -740,7 +757,7 @@ window.MYTHOS = {
 <section id="fronteira" class="pad">
   <div class="wrap">
     <span class="lbl rv">Quem somos</span>
-    <h2 class="h-lg rv" style="margin:22px 0 0;max-width:17ch">A extensão estratégica do seu marketing.</h2>
+    <h2 class="h-lg rv" style="margin:var(--s-5) 0 0;max-width:17ch">A extensão estratégica do seu marketing.</h2>
 
     <div class="paises">
       <div class="pais rv">
@@ -763,7 +780,7 @@ window.MYTHOS = {
     <span class="lbl rv">Fale conosco</span>
     <div class="ct-grid">
       <div class="rv">
-        <h2 class="h-md" style="margin:22px 0 18px;max-width:14ch">Vamos olhar os seus números?</h2>
+        <h2 class="h-md" style="margin:var(--s-5) 0 var(--s-4);max-width:14ch">Vamos olhar os seus números?</h2>
         <p class="lead">Preencha ao lado. A gente devolve um diagnóstico inicial da sua estrutura
           digital — de graça, e sem enrolação se o problema não for tráfego.</p>
         <div class="cinfo">
