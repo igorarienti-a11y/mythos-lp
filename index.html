@@ -700,8 +700,55 @@ window.MYTHOS = {
   const reduce = window.MYTHOS_FORCAR_ANIMACAO ? false : prefereMenos;
   if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
-  /* ---------- scroll nativo (Lenis removido a pedido — voltou ao de antes) ---------- */
-  const lenis = null;
+  /* ---------- SCROLL SUAVE: lerp manual no gsap.ticker ----------
+     Nao usar Lenis aqui: ele ja foi removido desta LP e, na LP da Fifi,
+     briga com scrollIntoView/scrollTo (o lerp dele disputa a posicao).
+     O problema real e que a roda do mouse entrega saltos discretos
+     (Y=0 -> 100 -> 200), sem passar pelos valores do meio. O lerp
+     intercepta a roda e interpola posicao a cada frame.
+     Padrao validado em producao no site-digitha.
+     ------------------------------------------------------------- */
+  const SUAVIDADE = 0.075;          // 0.04 lento · 0.075 equilibrado · 0.10 responsivo
+  let lerpAtivo = false;
+  if (window.gsap && window.ScrollTrigger && !reduce && window.innerWidth > 768) {
+    ScrollTrigger.config({ ignoreMobileResize: true });   // sem fastScrollEnd: corta o momentum
+    gsap.ticker.lagSmoothing(0);                          // a compensacao de lag causa micro-saltos
+
+    let alvoY = window.scrollY;
+    let atualY = window.scrollY;
+    const limite = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    window.addEventListener('wheel', e => {
+      // ctrl+roda e zoom do navegador: nao sequestrar, senao quebra o zoom
+      if (e.ctrlKey) return;
+      // menu mobile aberto: trava a pagina, nao rola por baixo
+      if (document.body.classList.contains('no-scroll')) { e.preventDefault(); return; }
+      e.preventDefault();
+      alvoY = Math.max(0, Math.min(limite(), alvoY + e.deltaY));
+    }, { passive: false });
+
+    gsap.ticker.add(() => {
+      // se algo moveu a pagina para longe sem passar pelo lerp, adota a posicao real
+      if (Math.abs(window.scrollY - atualY) > 200) { atualY = alvoY = window.scrollY; }
+      const dif = alvoY - atualY;
+      if (Math.abs(dif) > 0.1) {
+        atualY += dif * SUAVIDADE;
+        lerpAtivo = true;
+        window.scrollTo(0, atualY);
+        ScrollTrigger.update();
+      } else {
+        lerpAtivo = false;
+      }
+    });
+
+    // ancoras, teclado, barra de rolagem e scrollIntoView movem a pagina por fora do lerp.
+    // sem ressincronizar, o proximo giro da roda daria um salto de volta.
+    window.addEventListener('scroll', () => {
+      if (Math.abs(window.scrollY - atualY) > 4) { atualY = alvoY = window.scrollY; }
+    }, { passive: true });
+
+    window.addEventListener('resize', () => { alvoY = Math.min(alvoY, limite()); });
+  }
 
   /* ---------- sempre começar no topo ao (re)carregar (PC + mobile) ---------- */
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -914,7 +961,7 @@ window.MYTHOS = {
       place(0);
       const tween=gsap.to({t:0},{ t:1, ease:'none',
         scrollTrigger:{ trigger:stage, start:'top top', end:()=> '+='+Math.round((N-1)*0.9*window.innerHeight),
-          pin:true, scrub:0.5, anticipatePin:1, invalidateOnRefresh:true,
+          pin:true, scrub:1, anticipatePin:1, invalidateOnRefresh:true,
           onUpdate:self=> place(self.progress), onRefresh:self=> place(self.progress) }
       });
       const st=tween.scrollTrigger;
