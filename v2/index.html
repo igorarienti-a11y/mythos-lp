@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mythos · A gente não vende alcance. Vende faturamento.</title>
+<meta name="description" content="Agência de performance BR + PY. Tráfego, site, automação, conteúdo e dado numa estrutura só — operada por quem sobe campanha todo dia." />
+<meta name="theme-color" content="#5C068C" />
+<meta name="robots" content="noindex,nofollow" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mythos" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:title" content="Mythos · A gente não vende alcance. Vende faturamento." />
+<meta property="og:description" content="Tráfego, site, automação, conteúdo e dado numa estrutura só. Agência de performance BR + PY." />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%235C068C'/%3E%3Cpath d='M13 47V17h7.5l11.5 17 11.5-17H51v30h-7.5V30L32 46 20.5 30v17z' fill='%23fff'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@1&family=IBM+Plex+Mono:wght@400;500;600&family=Montserrat:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================================
+   MYTHOS v2 — branco dominante, roxo em bloco sólido.
+   Regras que definem o visual (e que a v1 quebrava):
+   1. ZERO glow. Nenhum box-shadow/text-shadow colorido. Peso vem de massa
+      de cor chapada e contraste, não de brilho.
+   2. Cantos vivos. radius 0 em tudo, exceto o pill do WhatsApp.
+   3. Preto é TINTA DE TEXTO, nunca fundo de seção (só o rodapé).
+   4. Tipografia em escala bruta: o H1 ocupa a largura, não o centro.
+   ========================================================================= */
+:root{
+  --branco:#FFFFFF;
+  --osso:#F2EEF5;
+  --tinta:#0A0710;
+  --tinta-60:rgba(10,7,16,.60);
+  --tinta-40:rgba(10,7,16,.40);
+  --roxo:#5C068C;
+  --roxo-esc:#3B0459;
+  --roxo-cl:#7B1FB0;
+  --neon:#A640FF;
+  --linha:rgba(10,7,16,.14);
+  --linha-inv:rgba(255,255,255,.22);
+  --max:1320px;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'Montserrat',system-ui,sans-serif;
+  --serif:'DM Serif Display',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--branco);color:var(--tinta);line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+body.no-scroll{overflow:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+::selection{background:var(--roxo);color:#fff}
+:focus-visible{outline:3px solid var(--neon);outline-offset:3px}
+
+/* ---------- primitivos ---------- */
+/* width:100% é obrigatório: dentro de um flex container em coluna (.svc-stage) o
+   `margin:0 auto` com width auto vira shrink-to-fit e a faixa encolhe pro texto */
+.wrap{max-width:var(--max);width:100%;margin:0 auto;padding:0 clamp(20px,4vw,56px);position:relative}
+section{position:relative;scroll-margin-top:72px}
+.pad{padding:clamp(84px,12vh,168px) 0}
+
+.lbl{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  display:flex;align-items:center;gap:12px;color:var(--roxo)}
+.lbl::before{content:"";width:34px;height:2px;background:var(--roxo);flex:0 0 auto}
+.inv .lbl{color:#fff}
+.inv .lbl::before{background:#fff}
+
+h1,h2,h3{font-weight:900;letter-spacing:-.045em;line-height:.92;text-wrap:balance}
+.h-xl{font-size:clamp(42px,8.6vw,124px)}
+.h-lg{font-size:clamp(34px,6.4vw,88px)}
+.h-md{font-size:clamp(26px,3.8vw,52px);letter-spacing:-.035em;line-height:1}
+.lead{font-size:clamp(16px,1.35vw,20px);color:var(--tinta-60);max-width:56ch;font-weight:500}
+.inv .lead{color:rgba(255,255,255,.72)}
+.it{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
+
+/* Marca de destaque: bloco roxo varrendo atrás da palavra.
+   O estado PADRÃO é o bloco JÁ pintado — se o JS morrer, a palavra continua
+   legível. Só depois de "armar" (via <script> no head, antes do primeiro paint)
+   é que ela começa recolhida. Foi exatamente esse tipo de default invertido
+   que apagou parte da manchete na v1. */
+.mark{position:relative;display:inline-block;padding:0 .12em;isolation:isolate;
+  color:#fff;transition:color .4s ease .28s}
+.mark::before{content:"";position:absolute;inset:.06em -.02em .04em;background:var(--roxo);z-index:-1;
+  transform:scaleX(1);transform-origin:left center;
+  transition:transform .85s cubic-bezier(.16,.84,.28,1)}
+html.arm .mark{color:var(--roxo)}
+html.arm .mark::before{transform:scaleX(0)}
+html.mark-go .mark{color:#fff}
+html.mark-go .mark::before{transform:scaleX(1)}
+
+/* ---------- botões ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:14px;cursor:pointer;border:0;
+  font-family:var(--sans);font-weight:800;font-size:15px;letter-spacing:-.01em;
+  color:#fff;background:var(--roxo);padding:20px 34px;position:relative;overflow:hidden;
+  transition:background .25s ease,color .25s ease}
+.btn span.t{position:relative;z-index:2}
+.btn .arr{position:relative;z-index:2;transition:transform .35s cubic-bezier(.2,.75,.2,1)}
+.btn::after{content:"";position:absolute;inset:0;background:var(--tinta);transform:translateY(101%);
+  transition:transform .38s cubic-bezier(.2,.75,.2,1);z-index:1}
+.btn:hover::after{transform:translateY(0)}
+.btn:hover .arr{transform:translateX(7px)}
+.btn.ghost{background:transparent;color:var(--tinta);box-shadow:inset 0 0 0 2px var(--tinta)}
+.btn.ghost:hover{color:#fff}
+.btn.ghost::after{background:var(--tinta)}
+.inv .btn{background:#fff;color:var(--roxo)}
+.inv .btn::after{background:var(--tinta)}
+.inv .btn:hover{color:#fff}
+.inv .btn.ghost{background:transparent;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+/* o card do formulário é branco DENTRO da seção roxa: sem isto o .inv deixa o
+   botão branco sobre fundo branco e o CTA principal da página some */
+.inv .form-card .btn{background:var(--roxo);color:#fff}
+.inv .form-card .btn::after{background:var(--tinta)}
+.inv .form-card .btn:hover{color:#fff}
+
+/* ---------- header (fora do smooth-wrapper: é fixed) ---------- */
+header{position:fixed;top:0;left:0;right:0;z-index:60;background:rgba(255,255,255,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--linha);
+  transition:background .35s ease,border-color .35s ease,color .35s ease}
+header.over-dark{background:rgba(59,4,89,.92);border-color:var(--linha-inv);color:#fff}
+.nav{max-width:var(--max);margin:0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(20px,4vw,56px);height:68px}
+.brand{font-weight:900;letter-spacing:.28em;font-size:17px;padding-left:.28em}
+.nav-links{display:flex;align-items:center;gap:34px}
+.nav-links a{font-family:var(--mono);font-size:12.5px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;position:relative;opacity:.7;transition:opacity .2s}
+.nav-links a:hover{opacity:1}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:-5px;width:0;height:2px;
+  background:currentColor;transition:width .3s cubic-bezier(.2,.75,.2,1)}
+.nav-links a:hover::after{width:100%}
+.nav-links a.btn{opacity:1;padding:13px 22px;font-family:var(--sans);font-weight:800;
+  font-size:13px;letter-spacing:-.01em;text-transform:none}
+.nav-links a.btn::after{left:auto;bottom:auto;width:auto;height:auto;background:var(--tinta)}
+.progress{position:absolute;left:0;bottom:-1px;height:2px;background:var(--roxo);width:0;z-index:2}
+header.over-dark .progress{background:#fff}
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:10px;z-index:70}
+.burger span{width:26px;height:2px;background:currentColor;transition:transform .3s,opacity .2s}
+
+/* =========================== HERO =========================== */
+.hero{padding:calc(68px + clamp(48px,9vh,110px)) 0 0;background:var(--branco)}
+.hero h1{margin:26px 0 0}
+.hero .sub{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;
+  margin-top:clamp(34px,5vh,60px);padding-bottom:clamp(38px,6vh,64px)}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:14px}
+/* faixa de fatos: mono, hairline, sem card. Prova sem enfeite. */
+.facts{border-top:1px solid var(--linha);display:grid;grid-template-columns:repeat(3,1fr)}
+.fact{padding:30px 0 34px;border-right:1px solid var(--linha);padding-right:28px}
+.fact:last-child{border-right:0}
+.fact .v{font-family:var(--sans);font-weight:900;font-size:clamp(26px,3.1vw,42px);letter-spacing:-.04em;line-height:1}
+.fact .v em{font-style:normal;color:var(--roxo)}
+.fact .k{font-family:var(--mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tinta-40);margin-top:12px}
+
+/* ==================== FAIXA DE PROVA (marquee) ==================== */
+.strip{background:var(--roxo);color:#fff;padding:26px 0;overflow:hidden;position:relative}
+.strip .track{display:flex;width:max-content;will-change:transform}
+.strip .it2{font-weight:900;font-size:clamp(19px,2.3vw,30px);letter-spacing:-.03em;
+  padding:0 30px;display:flex;align-items:center;gap:30px;white-space:nowrap}
+.strip .it2::after{content:"";width:9px;height:9px;background:#fff;flex:0 0 auto;
+  transform:rotate(45deg);opacity:.65}
+
+/* ==================== PROBLEMA (scrub palavra a palavra) ==================== */
+#problema{background:var(--branco)}
+.prob-stage{min-height:100vh;display:flex;align-items:center}
+.prob-txt{font-weight:900;letter-spacing:-.04em;line-height:1.06;
+  font-size:clamp(25px,4.3vw,60px);max-width:20ch}
+.prob-txt .w{display:inline-block}
+.prob-punch{color:var(--roxo)}
+.prob-foot{margin-top:clamp(30px,5vh,54px);padding-top:26px;border-top:1px solid var(--linha);
+  display:flex;flex-wrap:wrap;gap:18px 40px;align-items:baseline}
+.prob-foot p{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--tinta-60);max-width:44ch}
+
+/* ==================== SERVIÇOS (pin horizontal) ==================== */
+#servicos{background:var(--roxo-esc);color:#fff}
+.svc-intro{padding:clamp(80px,11vh,140px) 0 clamp(40px,6vh,70px)}
+/* O elemento pinado tem que caber na viewport: pina o PALCO (100vh), não a
+   seção inteira. A intro e o rodapé rolam normalmente por fora. */
+.svc-stage{height:100vh;display:flex;flex-direction:column;justify-content:center;
+  gap:clamp(16px,2.6vh,32px);padding:76px 0 26px}
+.svc-viewport{overflow:hidden}
+/* recuo que faz o 1º painel nascer na MESMA coluna do resto da página, em vez de
+   colado na borda: recuo do grid menos o padding que o próprio painel já tem */
+.svc-track{display:flex;width:max-content;will-change:transform;
+  padding-left:calc(max(0px, (100% - var(--max))/2) + clamp(20px,4vw,56px) - clamp(16px,2.6vw,40px));
+  padding-right:calc(max(0px, (100% - var(--max))/2) + clamp(20px,4vw,56px) - clamp(16px,2.6vw,40px))}
+.panel{width:min(86vw,880px);flex:0 0 auto;padding:0 clamp(16px,2.6vw,40px);
+  display:flex;align-items:stretch}
+.panel-in{background:var(--branco);color:var(--tinta);width:100%;position:relative;overflow:hidden;
+  padding:clamp(28px,3.6vw,54px);display:flex;flex-direction:column;justify-content:space-between;
+  min-height:min(48vh,410px)}
+/* número gigante ao fundo — o índice é o elemento gráfico, não um ícone genérico */
+.panel-in .idx{position:absolute;right:-.06em;bottom:-.34em;font-weight:900;font-size:clamp(180px,26vw,330px);
+  letter-spacing:-.07em;line-height:1;color:var(--osso);z-index:0;pointer-events:none;user-select:none}
+.panel-in>*{position:relative;z-index:1}
+.panel-in .num{font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.2em;color:var(--roxo)}
+.panel-in h3{font-size:clamp(28px,3.5vw,50px);margin:16px 0 18px;line-height:.95}
+.panel-in p{font-size:clamp(15px,1.15vw,17.5px);color:var(--tinta-60);max-width:42ch;font-weight:500}
+.panel-in ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:30px}
+.panel-in li{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  padding:9px 14px;box-shadow:inset 0 0 0 1px var(--linha);color:var(--tinta-60)}
+.svc-foot{display:flex;justify-content:space-between;align-items:center;gap:24px}
+.svc-outro{padding:clamp(46px,7vh,90px) 0 clamp(80px,11vh,140px)}
+.svc-bar{flex:1;height:3px;background:rgba(255,255,255,.28);position:relative;max-width:420px}
+.svc-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:#fff;display:block}
+.svc-count{font-family:var(--mono);font-size:12.5px;letter-spacing:.18em;color:rgba(255,255,255,.75)}
+
+/* ==================== CASE ==================== */
+#case{background:var(--branco)}
+.case-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(36px,5vw,88px);align-items:center;margin-top:54px}
+.case-meta dt{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tinta-40);margin-top:24px}
+.case-meta dd{font-size:16.5px;font-weight:600;margin-top:7px;max-width:38ch}
+.bars{display:flex;flex-direction:column;gap:34px}
+.bar-row .bl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.bar-row .bn{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta-40)}
+.bar-row .bv{font-weight:900;font-size:clamp(30px,4.6vw,64px);letter-spacing:-.045em;line-height:1}
+.bar{height:14px;background:var(--osso);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--tinta-40)}
+.bar-row.hi .bv{color:var(--roxo)}
+.bar-row.hi .bar i{background:var(--roxo)}
+.case-x{font-weight:900;font-size:clamp(40px,7vw,96px);letter-spacing:-.05em;line-height:1;
+  color:var(--roxo);margin-top:8px}
+.case-note{font-family:var(--mono);font-size:12.5px;color:var(--tinta-40);margin-top:34px;
+  padding-top:20px;border-top:1px solid var(--linha);max-width:60ch}
+
+/* ==================== MÉTODO ==================== */
+#metodo{background:var(--osso)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.4vw,34px);margin-top:60px;position:relative}
+.step{position:relative;padding-top:34px;border-top:2px solid var(--linha)}
+/* no desktop quem marca o avanço é a linha desenhada (DrawSVG) por cima;
+   abaixo de 1025px a linha é escondida, então o trilho volta a ser a borda */
+.step.on{border-top-color:var(--roxo)}
+@media(min-width:1025px){ .step.on{border-top-color:var(--linha)} }
+.step .sn{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--roxo)}
+.step h3{font-size:clamp(20px,2.05vw,29px);margin:14px 0 12px;line-height:1.02}
+.step p{font-size:15px;color:var(--tinta-60);font-weight:500}
+.loop{margin-top:52px;display:flex;align-items:center;gap:18px;font-family:var(--mono);
+  font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--roxo)}
+.loop svg{width:26px;height:26px;stroke:var(--roxo);fill:none;stroke-width:2;flex:0 0 auto}
+/* width:100% explícito: SVG é elemento substituído e cai na largura intrínseca
+   de 300px se só left/right forem definidos */
+#metodoLine{position:absolute;left:0;top:0;width:100%;height:2px;pointer-events:none;overflow:visible}
+
+/* ==================== BR + PY ==================== */
+#fronteira{background:var(--branco)}
+.paises{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:56px;border-top:1px solid var(--linha)}
+.pais{padding:clamp(34px,4.6vw,62px) clamp(24px,3vw,48px);border-right:1px solid var(--linha)}
+.pais:last-child{border-right:0}
+.pais .fl{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--roxo);font-weight:600}
+.pais h3{font-size:clamp(30px,4.4vw,62px);margin:16px 0 16px}
+.pais p{font-size:16px;color:var(--tinta-60);max-width:34ch;font-weight:500}
+
+/* ==================== CONTATO ==================== */
+#contato{background:var(--roxo);color:#fff}
+.ct-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:clamp(36px,5vw,80px);align-items:start;margin-top:48px}
+.cinfo{display:flex;flex-direction:column;gap:2px;margin-top:34px;border-top:1px solid var(--linha-inv)}
+.cinfo a,.cinfo span.ci{display:flex;align-items:center;gap:16px;padding:19px 0;
+  border-bottom:1px solid var(--linha-inv);font-family:var(--mono);font-size:13.5px;letter-spacing:.04em;
+  transition:padding-left .3s cubic-bezier(.2,.75,.2,1)}
+.cinfo a:hover{padding-left:12px}
+.cinfo svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.7;flex:0 0 auto}
+.cinfo a[hidden]{display:none}
+
+.form-card{background:var(--branco);color:var(--tinta);padding:clamp(26px,3.4vw,48px)}
+form{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field.full{grid-column:1/-1}
+label{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-40)}
+label .req{color:var(--roxo)}
+input,select{font-family:var(--sans);font-size:15.5px;font-weight:600;color:var(--tinta);background:transparent;
+  border:0;border-bottom:2px solid var(--linha);padding:11px 0;width:100%;
+  transition:border-color .22s}
+input::placeholder{color:var(--tinta-40);font-weight:500}
+input:focus,select:focus{outline:none;border-bottom-color:var(--roxo)}
+select{appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='none' stroke='%235C068C' stroke-width='2.4'%3E%3Cpath d='M1.5 4l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 2px center}
+.field.error input,.field.error select{border-bottom-color:#D91E4A}
+.err-msg{font-family:var(--mono);font-size:11.5px;color:#D91E4A;display:none}
+.field.error .err-msg{display:block}
+form .btn{grid-column:1/-1;width:100%;margin-top:10px;padding:22px}
+.reassure{grid-column:1/-1;list-style:none;display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:4px}
+.reassure li{font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--tinta-60);
+  display:flex;align-items:center;gap:7px}
+.reassure li::before{content:"";width:6px;height:6px;background:var(--roxo);flex:0 0 auto;transform:rotate(45deg)}
+.form-note{grid-column:1/-1;font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--tinta-40)}
+.success{display:none;padding:24px 0}
+.success.show{display:block}
+.success .ck{width:56px;height:56px;background:var(--roxo);display:grid;place-items:center;margin-bottom:22px}
+.success .ck svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:2.6}
+.success h3{font-size:32px;margin-bottom:12px}
+.success p{color:var(--tinta-60);max-width:40ch;font-weight:500}
+
+/* ==================== FOOTER ==================== */
+footer{background:var(--tinta);color:#fff;padding:clamp(56px,8vh,90px) 0 36px}
+.foot{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:36px}
+.foot .slogan{font-family:var(--serif);font-style:italic;font-size:19px;color:rgba(255,255,255,.62);
+  margin-top:16px;max-width:26ch}
+.foot h4{font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);margin-bottom:18px}
+.foot a,.foot .fi{display:block;font-size:14.5px;color:rgba(255,255,255,.75);padding:6px 0;transition:color .2s}
+.foot a:hover{color:#fff}
+.foot-bottom{margin-top:52px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14);
+  font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.4);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* ==================== FLUTUANTES ==================== */
+.mcta{position:fixed;left:0;right:0;bottom:0;z-index:55;display:none;
+  padding:0 0 env(safe-area-inset-bottom);transition:transform .32s cubic-bezier(.2,.75,.2,1)}
+.mcta.hide{transform:translateY(110%)}
+.mcta .btn{width:100%;padding:19px}
+.wafab{position:fixed;right:20px;bottom:24px;z-index:56;width:56px;height:56px;border-radius:50%;
+  display:none;place-items:center;background:#25D366;transition:transform .3s cubic-bezier(.2,.75,.2,1)}
+.wafab.on{display:grid}
+.wafab:hover{transform:scale(1.08)}
+.wafab svg{width:29px;height:29px;fill:#fff}
+
+/* ==================== REVEAL genérico (fallback) ==================== */
+.rv{opacity:0;transform:translateY(26px)}
+html.no-anim .rv{opacity:1;transform:none}
+
+/* ==================== RESPONSIVO ==================== */
+@media(max-width:1024px){
+  .case-grid,.ct-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  #metodoLine{display:none}
+}
+@media(max-width:860px){
+  .nav-links{position:fixed;inset:0 0 0 auto;width:82%;max-width:360px;flex-direction:column;
+    align-items:flex-start;justify-content:center;gap:26px;background:var(--roxo);color:#fff;
+    padding:90px 34px 40px;transform:translateX(100%);
+    transition:transform .42s cubic-bezier(.2,.75,.2,1)}
+  .nav-links.open{transform:translateX(0)}
+  .nav-links a{font-size:16px;opacity:1}
+  .nav-links a.btn{width:100%;background:#fff;color:var(--roxo)}
+  .burger{display:flex}
+  .burger.x span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger.x span:nth-child(2){opacity:0}
+  .burger.x span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .mcta{display:block}
+  body{padding-bottom:0}
+  .wafab{bottom:88px;right:16px;width:50px;height:50px}
+  .wafab svg{width:26px;height:26px}
+  .hero .sub{grid-template-columns:1fr;align-items:start;gap:26px}
+  .facts{grid-template-columns:1fr}
+  .fact{border-right:0;border-bottom:1px solid var(--linha);padding:22px 0}
+  .fact:last-child{border-bottom:0}
+  .paises{grid-template-columns:1fr}
+  .pais{border-right:0;border-bottom:1px solid var(--linha)}
+  .pais:last-child{border-bottom:0}
+  .foot{grid-template-columns:1fr 1fr}
+  .panel{width:88vw}
+  .svc-foot{padding-bottom:80px}
+}
+@media(max-width:560px){
+  form{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .foot{grid-template-columns:1fr}
+  .prob-txt{max-width:none}
+  .panel-in{min-height:auto}
+  .panel-in .idx{font-size:170px;bottom:-.28em}
+}
+/* Igor mantém a animação ligada mesmo com "reduzir movimento" do Windows
+   (MinAnimate=0 liga o prefers-reduced-motion sem o usuário pedir).
+   O interruptor está no <script> do topo — trocar para false devolve o padrão. */
+@media(prefers-reduced-motion:reduce){
+  html.no-anim *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+
+<script>
+/* Interruptor único: false = respeita prefers-reduced-motion do sistema.
+   O Windows do Igor liga o prefers-reduced-motion sozinho (MinAnimate=0),
+   e isso desligava animações que ele não pediu para desligar. */
+window.MYTHOS_FORCAR_ANIMACAO = true;
+(function(){
+  var quer = window.MYTHOS_FORCAR_ANIMACAO ||
+             !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!quer) return;
+  // "arma" antes do primeiro paint: sem flash de estado final
+  document.documentElement.classList.add('arm');
+  // rede de segurança: se o script principal não rodar (erro, lib fora do ar),
+  // a manchete se revela sozinha em 2,5s em vez de ficar branca no branco
+  setTimeout(function(){ document.documentElement.classList.add('mark-go'); }, 2500);
+})();
+</script>
+
+<!-- ================= CONFIG · os IDs entram aqui, só aqui ================= -->
+<script>
+window.MYTHOS = {
+  ENDPOINT:  'https://script.google.com/macros/s/AKfycbz1dw6SbA3yIACnejwS7JPcdMcgrUV70YtDUzbJlmfbzS6-XSEAHnlonwBe1Bunf-7TyA/exec',
+  PIXEL_ID:  '',           // Events Manager → conjunto de dados da Mythos
+  ADS_ID:    '',           // AW-0000000000
+  ADS_LABEL: '',           // rótulo da ação "Lead - Formulário"
+  ADS_LABEL_WA: '',        // rótulo da ação "Clique WhatsApp" (opcional)
+  GA4_ID:    '',           // G-XXXXXXXXXX
+  WHATSAPP:  ''            // só dígitos com DDI, ex 5548999999999
+};
+</script>
+
+<!-- ================= TRACKING · captura, pixel, gtag =================
+     Encanamento portado da v1 sem alteração de lógica: já foi validado
+     ponta a ponta. Única adição: variante:'v2' no payload, para separar
+     os leads das duas LPs no teste A/B (o Apps Script monta a linha a
+     partir dos cabeçalhos, então campo sem coluna é ignorado sem erro).
+     ================================================================== -->
+<script>
+(function(){
+  "use strict";
+  var C = window.MYTHOS;
+  var T = window._mythosTrack = {};
+
+  function cookie(n){ var m = document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)')); return m ? decodeURIComponent(m[2]) : ''; }
+  function uuid(){
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){
+      var r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16);
+    });
+  }
+  function store(chave, chaves){
+    var p = new URLSearchParams(location.search), achou = {}, algum = false;
+    chaves.forEach(function(k){ var v = p.get(k); if (v){ achou[k] = v; algum = true; } });
+    if (algum) try { localStorage.setItem(chave, JSON.stringify(achou)); } catch(e){}
+    var salvo = {};
+    try { salvo = JSON.parse(localStorage.getItem(chave) || '{}'); } catch(e){}
+    return algum ? achou : salvo;
+  }
+
+  T.utms = store('_mythos_utms', ['utm_source','utm_medium','utm_campaign','utm_term','utm_content']);
+  T.ids  = store('_mythos_ids',  ['fbclid','gclid','gbraid','wbraid','ttclid','msclkid']);
+
+  // o endpoint é Apps Script e não enxerga o IP do visitante: vem do browser
+  T.geo = {};
+  try { T.geo = JSON.parse(sessionStorage.getItem('_mythos_geo') || '{}'); } catch(e){}
+  if (!T.geo.ip) {
+    fetch('https://ipapi.co/json/').then(function(r){ return r.json(); }).then(function(d){
+      T.geo = { ip:d.ip||'', city:d.city||'', region:d.region_code||'', postal:d.postal||'', country:d.country_code||'' };
+      try { sessionStorage.setItem('_mythos_geo', JSON.stringify(T.geo)); } catch(e){}
+    }).catch(function(){});
+  }
+
+  T.base = function(){
+    var fbc = cookie('_fbc');
+    if (!fbc && T.ids.fbclid) fbc = 'fb.1.' + Date.now() + '.' + T.ids.fbclid;
+    return {
+      utm_source:T.utms.utm_source||'', utm_medium:T.utms.utm_medium||'',
+      utm_campaign:T.utms.utm_campaign||'', utm_term:T.utms.utm_term||'', utm_content:T.utms.utm_content||'',
+      fbclid:T.ids.fbclid||'', gclid:T.ids.gclid||'', gbraid:T.ids.gbraid||'',
+      wbraid:T.ids.wbraid||'', ttclid:T.ids.ttclid||'', msclkid:T.ids.msclkid||'',
+      fbp:cookie('_fbp'), fbc:fbc,
+      page_url:location.href, referrer:document.referrer,
+      language:navigator.language, screen:screen.width+'x'+screen.height,
+      timezone:(Intl.DateTimeFormat().resolvedOptions().timeZone||''),
+      user_agent:navigator.userAgent,
+      ip:T.geo.ip||'', city:T.geo.city||'', region:T.geo.region||'',
+      postal:T.geo.postal||'', country:T.geo.country||'BR',
+      variante:'v2'
+    };
+  };
+  T.novoEventId = uuid;
+
+  if (C.PIXEL_ID) {
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', C.PIXEL_ID);
+    fbq('track','PageView',{},{eventID:uuid()});   // init sozinho não cria o cookie _fbp
+  } else { window.fbq = window.fbq || function(){}; }
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
+  if (C.ADS_ID || C.GA4_ID) {
+    var s = document.createElement('script'); s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + (C.ADS_ID || C.GA4_ID);
+    document.head.appendChild(s);
+    gtag('js', new Date());
+    if (C.ADS_ID) gtag('config', C.ADS_ID);   // grava _gcl_aw (papel do Conversion Linker)
+    if (C.GA4_ID) gtag('config', C.GA4_ID);
+  }
+})();
+</script>
+</head>
+<body>
+
+<!-- ===== fixos ficam FORA do #smooth-wrapper: dentro de um container
+     transformado, position:fixed prende ao conteúdo, não à viewport ===== -->
+<header id="hdr">
+  <nav class="nav">
+    <a href="#top" class="brand">MYTHOS</a>
+    <div class="nav-links" id="navlinks">
+      <a href="#problema">Diagnóstico</a>
+      <a href="#servicos">O que fazemos</a>
+      <a href="#case">Case</a>
+      <a href="#metodo">Método</a>
+      <a href="#contato" class="btn"><span class="t">Falar com a Mythos</span></a>
+    </div>
+    <button class="burger" id="burger" aria-label="Abrir menu" aria-expanded="false" aria-controls="navlinks">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <i class="progress" id="prog"></i>
+</header>
+
+<div class="mcta hide" id="mcta">
+  <a href="#contato" class="btn"><span class="t">Quero um diagnóstico</span> <span class="arr">→</span></a>
+</div>
+
+<a class="wafab wa-link" id="wafab" href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.43 12.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47s1.07 2.86 1.22 3.06c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35z"/></svg>
+</a>
+
+<div id="smooth-wrapper">
+<div id="smooth-content">
+
+<!-- ============================ HERO ============================ -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <span class="lbl rv">BR &nbsp;▸&nbsp; PY · Agência de performance</span>
+
+    <!-- o ponto vai DENTRO da marca: solto, ele quebrava sozinho para a linha
+         de baixo no celular e ficava um pingo órfão embaixo do bloco roxo -->
+    <h1 class="h-xl" id="heroH1">A gente não vende alcance.<br>Vende <span class="mark" id="heroMark">faturamento.</span></h1>
+
+    <div class="sub">
+      <p class="lead rv">Tráfego, site, automação, conteúdo e dado numa estrutura só —
+        operada por quem sobe campanha todo dia, dos dois lados da fronteira.
+        Você não precisa de cinco fornecedores. Precisa de uma estrutura que fecha a conta.</p>
+      <div class="ctas rv">
+        <a href="#contato" class="btn"><span class="t">Quero um diagnóstico</span> <span class="arr">→</span></a>
+        <a href="#servicos" class="btn ghost"><span class="t">O que fazemos</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="facts">
+      <div class="fact rv">
+        <div class="v">5,49% <em>→</em> 51,36%</div>
+        <div class="k">Qualificação de lead · case Liderança</div>
+      </div>
+      <div class="fact rv">
+        <div class="v">2 países</div>
+        <div class="k">Operação ativa no Brasil e no Paraguai</div>
+      </div>
+      <div class="fact rv">
+        <div class="v">11 marcas</div>
+        <div class="k">Na carteira hoje · varejo, serviço e B2B</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FAIXA DE PROVA (marquee) ==================== -->
+<div class="strip dark-zone" id="strip" aria-label="Marcas atendidas">
+  <div class="track" id="stripTrack"></div>
+</div>
+
+<!-- ======================= PROBLEMA (scrub) ======================= -->
+<section id="problema">
+  <div class="prob-stage" id="probStage">
+    <div class="wrap">
+      <p class="prob-txt" id="probTxt">Você já pagou por relatório bonito. Já ouviu que o alcance cresceu. Já viu o post bombar. E no fim do mês a pergunta continuou a mesma: <span class="prob-punch">quanto disso virou venda?</span></p>
+    </div>
+  </div>
+  <div class="wrap" style="padding-bottom:clamp(70px,10vh,120px)">
+    <div class="prob-foot">
+      <span class="lbl">A Mythos existe pra responder isso com número</span>
+      <p>Se a resposta não cabe numa planilha, não foi marketing — foi despesa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =================== SERVIÇOS (pin horizontal) =================== -->
+<section id="servicos" class="inv dark-zone">
+  <div class="wrap svc-intro">
+    <span class="lbl rv">O que fazemos</span>
+    <h2 class="h-lg rv" style="margin:22px 0 20px;max-width:16ch">Cinco frentes. Uma estrutura só.</h2>
+    <p class="lead rv">Cada peça alimenta a próxima: o tráfego abastece, a página converte,
+      a automação responde, o conteúdo sustenta e o dado corrige a rota. Separadas, viram custo.</p>
+  </div>
+
+  <div class="svc-stage" id="svcStage">
+  <div class="svc-viewport" id="svcViewport">
+    <div class="svc-track" id="svcTrack">
+
+      <article class="panel"><div class="panel-in">
+        <span class="idx" aria-hidden="true">1</span>
+        <div>
+          <span class="num">01 / 05</span>
+          <h3>Tráfego pago</h3>
+          <p>Meta e Google com estrutura de verdade: oferta, funil, criativo e otimização
+             olhando ROAS e custo por venda. Não alcance, não impressão, não "engajamento".</p>
+        </div>
+        <ul><li>Meta Ads</li><li>Google Ads</li><li>Criativo</li><li>ROAS</li><li>Escala</li></ul>
+      </div></article>
+
+      <article class="panel"><div class="panel-in">
+        <span class="idx" aria-hidden="true">2</span>
+        <div>
+          <span class="num">02 / 05</span>
+          <h3>Sites &amp; landing pages</h3>
+          <p>Página rápida, medida e feita para converter — com rastreamento server-side
+             ligado no dia um, não três meses depois quando o dado já se perdeu.</p>
+        </div>
+        <ul><li>Landing pages</li><li>Sites</li><li>CAPI</li><li>Performance</li><li>UX</li></ul>
+      </div></article>
+
+      <article class="panel"><div class="panel-in">
+        <span class="idx" aria-hidden="true">3</span>
+        <div>
+          <span class="num">03 / 05</span>
+          <h3>Automação &amp; CRM</h3>
+          <p>WhatsApp, nutrição e CRM rodando sozinhos. O lead é respondido em segundos,
+             não no dia seguinte — quando ele já falou com o concorrente.</p>
+        </div>
+        <ul><li>WhatsApp</li><li>CRM</li><li>Nutrição</li><li>Pós-venda</li></ul>
+      </div></article>
+
+      <article class="panel"><div class="panel-in">
+        <span class="idx" aria-hidden="true">4</span>
+        <div>
+          <span class="num">04 / 05</span>
+          <h3>Social &amp; conteúdo</h3>
+          <p>Conteúdo que constrói autoridade e ainda alimenta a campanha. A mesma voz
+             no orgânico e no pago, porque o cliente não separa os dois.</p>
+        </div>
+        <ul><li>Estratégia</li><li>Criativos</li><li>Calendário</li><li>Comunidade</li></ul>
+      </div></article>
+
+      <article class="panel"><div class="panel-in">
+        <span class="idx" aria-hidden="true">5</span>
+        <div>
+          <span class="num">05 / 05</span>
+          <h3>Dados</h3>
+          <p>Dashboard ao vivo com ROAS, CAC e venda no momento em que acontecem.
+             A próxima decisão sai do número — e quando o número é ruim, você ouve isso da gente.</p>
+        </div>
+        <ul><li>Dashboard ao vivo</li><li>ROAS &amp; CAC</li><li>Relatório</li><li>Alerta</li></ul>
+      </div></article>
+
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="svc-foot">
+      <span class="svc-count" id="svcCount">01 — 05</span>
+      <span class="svc-bar"><i id="svcBar"></i></span>
+    </div>
+  </div>
+  </div><!-- /.svc-stage -->
+
+  <div class="wrap svc-outro">
+    <a href="#contato" class="btn"><span class="t">Montar a minha estrutura</span> <span class="arr">→</span></a>
+  </div>
+</section>
+
+<!-- ============================ CASE ============================ -->
+<section id="case" class="pad">
+  <div class="wrap">
+    <span class="lbl rv">Prova</span>
+    <h2 class="h-lg rv" style="margin:22px 0 0;max-width:18ch">O que acontece quando a estrutura entra.</h2>
+
+    <div class="case-grid">
+      <dl class="case-meta rv">
+        <dt>Cliente</dt><dd>Liderança Serviços — facilities e terceirização, B2B</dd>
+        <dt>O problema</dt><dd>A conta gerava lead em volume, mas a maioria era candidato a vaga de emprego. O comercial gastava o dia atendendo quem nunca ia comprar.</dd>
+        <dt>O que foi feito</dt><dd>Lista de negativas de modificadores de emprego, keywords B2B em frase e qualificação por estágio realimentando a campanha — a conta passou a aprender quem compra.</dd>
+      </dl>
+
+      <div class="bars rv">
+        <!-- Os valores FINAIS ficam no HTML e a animação parte deles para trás.
+             Ao contrário: se o scrub não rodasse, a linha "Depois" mostraria
+             5,49% — o número errado, apresentado como se fosse o resultado. -->
+        <div class="bar-row">
+          <div class="bl"><span class="bn">Antes</span><span class="bv">5,49%</span></div>
+          <div class="bar"><i style="width:5.49%"></i></div>
+        </div>
+        <div class="bar-row hi">
+          <div class="bl"><span class="bn">Depois</span><span class="bv" id="caseNum">51,36%</span></div>
+          <div class="bar"><i id="caseBar" style="width:51.36%"></i></div>
+        </div>
+        <div class="case-x" id="caseX">9x</div>
+      </div>
+    </div>
+
+    <p class="case-note rv">Um case real, de uma conta real, com o número que o Google Ads mostra —
+      não uma média de mercado nem projeção. Resultado passado não garante o seu:
+      o seu depende da sua oferta, da sua margem e do seu comercial atender.</p>
+  </div>
+</section>
+
+<!-- =========================== MÉTODO =========================== -->
+<section id="metodo" class="pad">
+  <div class="wrap">
+    <span class="lbl rv">Como funciona</span>
+    <h2 class="h-lg rv" style="margin:22px 0 20px;max-width:15ch">Quatro etapas que não param de girar.</h2>
+    <p class="lead rv">Não é campanha, é ciclo. A quarta etapa alimenta a primeira, e por isso
+      a conta fica melhor no mês seis do que estava no mês um.</p>
+
+    <div class="steps" id="steps">
+      <svg id="metodoLine" preserveAspectRatio="none" aria-hidden="true">
+        <line id="metodoPath" x1="0" y1="1" x2="100%" y2="1" stroke="#5C068C" stroke-width="2"/>
+      </svg>
+      <div class="step rv">
+        <span class="sn">01</span>
+        <h3>Diagnóstico</h3>
+        <p>Antes da verba, os números: oferta, margem, ciclo de venda e onde o dinheiro está vazando hoje. Se não fizer sentido, a gente fala.</p>
+      </div>
+      <div class="step rv">
+        <span class="sn">02</span>
+        <h3>Estrutura</h3>
+        <p>Página, rastreamento, automação e CRM no lugar. Campanha em cima de estrutura torta é dinheiro no lixo com relatório bonito.</p>
+      </div>
+      <div class="step rv">
+        <span class="sn">03</span>
+        <h3>Tráfego</h3>
+        <p>Sobe campanha, testa criativo, corta o que não paga. Toda semana, não todo trimestre.</p>
+      </div>
+      <div class="step rv">
+        <span class="sn">04</span>
+        <h3>Qualificação</h3>
+        <p>Seu comercial marca quem virou cliente, e isso volta para a campanha. É aqui que 5,49% vira 51,36%.</p>
+      </div>
+    </div>
+
+    <div class="loop rv">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v5h-5"/></svg>
+      A etapa 04 realimenta a 01 · o ciclo não fecha, recomeça
+    </div>
+  </div>
+</section>
+
+<!-- ========================== BR + PY ========================== -->
+<section id="fronteira" class="pad">
+  <div class="wrap">
+    <span class="lbl rv">Quem somos</span>
+    <h2 class="h-lg rv" style="margin:22px 0 0;max-width:17ch">A extensão estratégica do seu marketing.</h2>
+
+    <div class="paises">
+      <div class="pais rv">
+        <span class="fl">BRASIL</span>
+        <h3>Português</h3>
+        <p>Conta rodando, criativo produzido e comercial acompanhado no mesmo fuso e na mesma língua do seu cliente.</p>
+      </div>
+      <div class="pais rv">
+        <span class="fl">PARAGUAI</span>
+        <h3>Español</h3>
+        <p>Operação real do outro lado da fronteira — CTWA, catálogo e marketplace com quem entende o mercado de lá, não com tradução automática.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================== CONTATO ========================== -->
+<section id="contato" class="pad inv dark-zone">
+  <div class="wrap">
+    <span class="lbl rv">Fale conosco</span>
+    <div class="ct-grid">
+      <div class="rv">
+        <h2 class="h-md" style="margin:22px 0 18px;max-width:14ch">Vamos olhar os seus números?</h2>
+        <p class="lead">Preencha ao lado. A gente devolve um diagnóstico inicial da sua estrutura
+          digital — de graça, e sem enrolação se o problema não for tráfego.</p>
+        <div class="cinfo">
+          <a class="wa-link" href="#" target="_blank" rel="noopener" hidden>
+            <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.9 7L4 20l1.1-4A8 8 0 1 1 20 12z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/></svg>
+            Chamar no WhatsApp
+          </a>
+          <a href="https://instagram.com/mythosagency_" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1"/></svg>
+            @mythosagency_
+          </a>
+          <span class="ci">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 7l8 6 8-6"/></svg>
+            mythosinmarketing@gmail.com
+          </span>
+        </div>
+      </div>
+
+      <div class="form-card rv">
+        <form id="leadForm" novalidate>
+          <div class="field">
+            <label for="nome">Nome <span class="req">*</span></label>
+            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" autocomplete="name" required>
+            <span class="err-msg">Informe seu nome.</span>
+          </div>
+          <div class="field">
+            <label for="email">E-mail <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="voce@empresa.com" autocomplete="email" required>
+            <span class="err-msg">Informe um e-mail válido.</span>
+          </div>
+          <div class="field">
+            <label for="telefone">WhatsApp <span class="req">*</span></label>
+            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000 — fora do BR, use +" autocomplete="tel" required>
+            <span class="err-msg">Informe um telefone válido.</span>
+          </div>
+          <div class="field full">
+            <label for="faturamento">Faturamento mensal <span class="req">*</span></label>
+            <select id="faturamento" name="faturamento" required>
+              <option value="" disabled selected>Selecione a faixa</option>
+              <option value="ate-10k">Até R$ 10 mil / mês</option>
+              <option value="10k-50k">R$ 10 mil a R$ 50 mil / mês</option>
+              <option value="50k-100k">R$ 50 mil a R$ 100 mil / mês</option>
+              <option value="100k-500k">R$ 100 mil a R$ 500 mil / mês</option>
+              <option value="500k-1m">R$ 500 mil a R$ 1 milhão / mês</option>
+              <option value="acima-1m">Acima de R$ 1 milhão / mês</option>
+              <option value="pre-faturamento">Ainda não faturo / começando</option>
+            </select>
+            <span class="err-msg">Selecione uma faixa de faturamento.</span>
+          </div>
+          <button type="submit" class="btn"><span class="t">Quero o diagnóstico</span> <span class="arr">→</span></button>
+          <!-- prova no ponto de maior hesitação: o botão. A pesquisa é clara em
+               distribuir os sinais de confiança em vez de empilhar num bloco só. -->
+          <ul class="reassure">
+            <li>4 campos, sem ligação de vendas</li>
+            <li>Resposta em até 1 dia útil</li>
+            <li>Se o problema não for tráfego, a gente diz</li>
+          </ul>
+          <p class="form-note">Ao enviar, você autoriza a Mythos a usar seus dados para entrar em contato
+            sobre este diagnóstico (LGPD, art. 7º). Não vendemos nem repassamos sua informação,
+            e você pode pedir a exclusão a qualquer momento por e-mail.</p>
+        </form>
+        <div class="success" id="success">
+          <div class="ck"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></div>
+          <h3>Recebido.</h3>
+          <p>O time da Mythos entra em contato. Já pode separar os números — a conversa começa por eles.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================== FOOTER =========================== -->
+<footer class="dark-zone">
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <span class="brand">MYTHOS</span>
+        <p class="slogan">Estrutura que vende hoje. Marca que fica pra sempre.</p>
+      </div>
+      <div>
+        <h4>Navegação</h4>
+        <a href="#problema">Diagnóstico</a>
+        <a href="#servicos">O que fazemos</a>
+        <a href="#case">Case</a>
+        <a href="#metodo">Método</a>
+        <a href="#contato">Contato</a>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <a href="https://instagram.com/mythosagency_" target="_blank" rel="noopener">@mythosagency_</a>
+        <a href="mailto:mythosinmarketing@gmail.com">mythosinmarketing@gmail.com</a>
+        <span class="fi">Brasil &amp; Paraguai</span>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Mythos · Agência de performance BR + PY</span>
+      <span>Tráfego · Sites · Automação · Social · Dados</span>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /#smooth-content -->
+</div><!-- /#smooth-wrapper -->
+
+<!-- ===================== LIBS (self-hosted) =====================
+     GSAP 3.15.0 sob a licença "no charge" da GreenSock. Servidas do
+     próprio repositório: zero dependência de CDN em runtime. -->
+<script src="lib/gsap.min.js"></script>
+<script src="lib/ScrollTrigger.min.js"></script>
+<script src="lib/ScrollSmoother.min.js"></script>
+<script src="lib/SplitText.min.js"></script>
+<script src="lib/DrawSVGPlugin.min.js"></script>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== estado de movimento ===================== */
+var prefereMenos = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var ANIMA = window.MYTHOS_FORCAR_ANIMACAO ? true : !prefereMenos;
+var TEM_GSAP = !!(window.gsap && window.ScrollTrigger);
+if (!ANIMA || !TEM_GSAP) document.documentElement.classList.add('no-anim');
+
+/* dados do marquee: uma lista só, repetida no JS — evita 4 blocos
+   duplicados no HTML como estava na v1 */
+var MARCAS = ['Amora Lingerie','Via Center','Parisis Estética','Rita Pimentel','Desenvolve Soluções',
+              'Delt4','Realizetur Viagens','Dariano Planejados','Autoescola Batistense',
+              'Pizzaria do Rick','Valtcompany'];
+(function montaStrip(){
+  var t = document.getElementById('stripTrack'); if(!t) return;
+  var html = MARCAS.map(function(m){ return '<span class="it2">'+m+'</span>'; }).join('');
+  t.innerHTML = html + html;                       // duas cópias = loop de -50%
+})();
+
+/* ===================== NAV (independe do GSAP) ===================== */
+var hdr = document.getElementById('hdr');
+var burger = document.getElementById('burger');
+var navlinks = document.getElementById('navlinks');
+function setMenu(open){
+  navlinks.classList.toggle('open', open);
+  burger.classList.toggle('x', open);
+  document.body.classList.toggle('no-scroll', open);
+  burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  burger.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+}
+burger.addEventListener('click', function(){ setMenu(!navlinks.classList.contains('open')); });
+navlinks.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', function(){ setMenu(false); }); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') setMenu(false); });
+
+/* sempre abrir no topo: sem isso o navegador restaura a posição e o
+   ScrollTrigger calcula os pins a partir do lugar errado */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+/* ===================== fallback sem GSAP ===================== */
+if (!TEM_GSAP || !ANIMA){
+  document.querySelectorAll('.rv').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; });
+  // as barras e o número do case já vêm no valor final pelo HTML: nada a fazer aqui
+  // marquee em CSS puro como último recurso
+  var tk = document.getElementById('stripTrack');
+  if (tk && ANIMA){
+    var st = document.createElement('style');
+    st.textContent = '@keyframes mqx{to{transform:translateX(-50%)}}#stripTrack{animation:mqx 34s linear infinite}';
+    document.head.appendChild(st);
+  }
+  ligarFormulario();
+  ligarWhatsApp();
+  return;
+}
+
+/* ===================== GSAP ===================== */
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText, DrawSVGPlugin);
+
+/* ScrollSmoother substitui o lerp manual da v1: é do mesmo motor do
+   ScrollTrigger, então pin e scrub ficam sincronizados por construção,
+   e não briga com scroll-behavior/scrollIntoView. Desktop apenas. */
+/* Escape hatch de QA. O ScrollSmoother põe o conteúdo num wrapper `position:fixed`
+   com transform, e nesse estado o screenshot do Playwright/Chrome headless pinta
+   só o primeiro frame — tudo abaixo da dobra sai em branco, dando falso negativo.
+   Ligar isto devolve o scroll nativo e as capturas voltam a funcionar. */
+var QA_SEM_SMOOTHER = false;
+var smoother = QA_SEM_SMOOTHER ? null : ScrollSmoother.create({
+  wrapper:'#smooth-wrapper',
+  content:'#smooth-content',
+  smooth: 1.15,
+  effects: true,          // habilita data-speed / data-lag
+  smoothTouch: false,     // no celular o scroll nativo é melhor
+  normalizeScroll: true,
+  ignoreMobileResize: true
+});
+if(smoother) smoother.scrollTop(0); else window.scrollTo(0,0);
+
+/* ---------- barra de progresso ---------- */
+var prog = document.getElementById('prog');
+ScrollTrigger.create({
+  start:0, end:'max',
+  onUpdate:function(self){ prog.style.width = (self.progress*100).toFixed(2) + '%'; }
+});
+
+/* ---------- header inverte sobre bloco roxo/escuro ----------
+   detalhe barato que quase ninguém faz: o header assume a cor da seção
+   em vez de ficar um retângulo branco flutuando sobre o roxo */
+document.querySelectorAll('.dark-zone').forEach(function(zone){
+  ScrollTrigger.create({
+    trigger: zone, start:'top 68px', end:'bottom 68px',
+    onToggle:function(self){ hdr.classList.toggle('over-dark', self.isActive); }
+  });
+});
+
+/* ---------- reveal genérico (batch, não um trigger por elemento) ---------- */
+ScrollTrigger.batch('.rv', {
+  start:'top 88%',
+  onEnter:function(els){
+    gsap.to(els, {opacity:1, y:0, duration:.85, ease:'power3.out', stagger:.09, overwrite:true});
+  },
+  once:true
+});
+
+/* ================= 1. HERO — linhas subindo por dentro da máscara =================
+   mask:'lines' embrulha cada linha num container com overflow clip, então a
+   linha nasce por baixo da própria caixa de texto em vez de aparecer de lonjura.
+   autoSplit re-divide sozinho quando a fonte carrega ou a largura muda. */
+document.fonts.ready.then(function(){
+  SplitText.create('#heroH1', {
+    type:'lines', mask:'lines', autoSplit:true,
+    onSplit:function(self){
+      return gsap.timeline()
+        .from(self.lines, {yPercent:110, duration:1, ease:'expo.out', stagger:.11})
+        // o bloco roxo só varre depois da última linha assentar
+        .add(function(){ document.documentElement.classList.add('mark-go'); }, '-=0.15');
+    }
+  });
+  ScrollTrigger.refresh();
+});
+
+/* ============ 2. MARQUEE dirigido pela velocidade do scroll ============
+   Não é `animation: linear infinite`. A faixa acelera com a rolagem e
+   INVERTE quando você sobe a página — o olho registra que a página
+   reage a você, mesmo sem saber por quê. */
+(function(){
+  var track = document.getElementById('stripTrack'); if(!track) return;
+  var loop = gsap.to(track, {xPercent:-50, duration:34, ease:'none', repeat:-1});
+  var ts = {v:1}, idle;
+  ScrollTrigger.create({
+    start:0, end:'max',
+    onUpdate:function(self){
+      var alvo = self.direction * gsap.utils.clamp(1, 5.5, 1 + Math.abs(self.getVelocity())/620);
+      gsap.to(ts, {v:alvo, duration:.35, overwrite:true,
+                   onUpdate:function(){ loop.timeScale(ts.v); }});
+      clearTimeout(idle);
+      idle = setTimeout(function(){
+        gsap.to(ts, {v:self.direction, duration:1, overwrite:true,
+                     onUpdate:function(){ loop.timeScale(ts.v); }});
+      }, 180);
+    }
+  });
+})();
+
+/* ============ 3. PROBLEMA — leitura forçada palavra a palavra ============
+   A seção trava e o texto acende conforme você rola. Obriga a ler a dor
+   inteira antes de liberar a página — é o momento de conversão da LP. */
+(function(){
+  var txt = document.getElementById('probTxt'); if(!txt) return;
+  var split = SplitText.create(txt, {type:'words', wordsClass:'w'});
+  gsap.set(split.words, {opacity:.13});
+  gsap.to(split.words, {
+    opacity:1, ease:'none', stagger:.4,
+    scrollTrigger:{
+      trigger:'#probStage', start:'top top', end:'+=130%',
+      pin:true, scrub:.35, anticipatePin:1, invalidateOnRefresh:true
+    }
+  });
+})();
+
+/* ============ 4. SERVIÇOS — pin horizontal + inclinação por velocidade ============ */
+(function(){
+  var viewport = document.getElementById('svcViewport');
+  var track = document.getElementById('svcTrack');
+  var bar = document.getElementById('svcBar');
+  var count = document.getElementById('svcCount');
+  if(!track) return;
+  var painels = gsap.utils.toArray('#svcTrack .panel-in');
+  var N = painels.length;
+
+  var distancia = function(){ return Math.max(0, track.scrollWidth - viewport.offsetWidth); };
+
+  gsap.to(track, {
+    x: function(){ return -distancia(); },
+    ease:'none',                       // obrigatório: qualquer outra ease quebra o mapa scroll↔posição
+    scrollTrigger:{
+      trigger:'#svcStage',
+      start:'top top',
+      end:function(){ return '+=' + distancia(); },
+      pin:true, scrub:1, anticipatePin:1, invalidateOnRefresh:true,
+      onUpdate:function(self){
+        var p = self.progress;
+        bar.style.width = (p*100).toFixed(2) + '%';
+        var i = Math.min(N, Math.floor(p*N) + 1);
+        count.textContent = ('0'+i).slice(-2) + ' — 0' + N;
+
+        // a inclinação segue a direção do movimento e volta ao zero sozinha
+        var sk = gsap.utils.clamp(-7, 7, self.getVelocity() / -260);
+        gsap.to(painels, {skewX:sk, duration:.5, ease:'power2.out', overwrite:'auto'});
+      },
+      onLeave:function(){ gsap.to(painels,{skewX:0,duration:.4}); },
+      onLeaveBack:function(){ gsap.to(painels,{skewX:0,duration:.4}); }
+    }
+  });
+})();
+
+/* ============ 5. CASE — contador e barra scrubados ============ */
+(function(){
+  var num = document.getElementById('caseNum');
+  var barra = document.getElementById('caseBar');
+  var fixa = document.querySelector('.bar-row:not(.hi) .bar i');
+  var x = document.getElementById('caseX');
+  if(!num) return;
+
+  gsap.fromTo(fixa, {width:'0%'}, {width:'5.49%', duration:.9, ease:'power3.out',
+    scrollTrigger:{trigger:'#case', start:'top 65%', once:true}});
+
+  // parte do valor final que está no HTML e recua para o inicial
+  num.textContent = '5,49%'; barra.style.width = '5.49%';
+  var o = {v:5.49};
+  gsap.to(o, {
+    v:51.36, ease:'none',
+    scrollTrigger:{trigger:'#case', start:'top 62%', end:'bottom 85%', scrub:.4},
+    onUpdate:function(){
+      num.textContent = o.v.toFixed(2).replace('.', ',') + '%';
+      barra.style.width = o.v + '%';
+    }
+  });
+
+  gsap.from(x, {yPercent:60, opacity:0, duration:.8, ease:'expo.out',
+    scrollTrigger:{trigger:x, start:'top 88%', once:true}});
+})();
+
+/* ============ 6. MÉTODO — linha que se desenha ligando as etapas ============ */
+(function(){
+  var path = document.getElementById('metodoPath');
+  var steps = gsap.utils.toArray('#steps .step');
+  if(!path) return;
+  gsap.set(path, {drawSVG:'0%'});
+  gsap.to(path, {
+    drawSVG:'100%', ease:'none',
+    scrollTrigger:{trigger:'#steps', start:'top 78%', end:'bottom 72%', scrub:.5}
+  });
+  steps.forEach(function(s){
+    ScrollTrigger.create({trigger:s, start:'top 76%',
+      onEnter:function(){ s.classList.add('on'); }});
+  });
+})();
+
+/* ============ 7. CTA fixa do celular ============ */
+(function(){
+  var mcta = document.getElementById('mcta');
+  var ctas = document.querySelector('.hero .ctas');
+  if(!mcta) return;
+  // some enquanto os botões do hero ou o formulário estão à vista:
+  // repetir o CTA por cima deles só tampa a tela
+  var noHero = true, noContato = false;
+  var aplica = function(){ mcta.classList.toggle('hide', noHero || noContato); };
+  ScrollTrigger.create({trigger:ctas, start:'top bottom', end:'bottom top',
+    onToggle:function(s){ noHero = s.isActive; aplica(); }});
+  ScrollTrigger.create({trigger:'#contato', start:'top 70%', end:'bottom top',
+    onToggle:function(s){ noContato = s.isActive; aplica(); }});
+  aplica();
+})();
+
+/* recalcula depois que as fontes assentam: sem isso as alturas mudam
+   e todo pin criado antes fica com o offset errado */
+document.fonts.ready.then(function(){ ScrollTrigger.refresh(); });
+
+ligarFormulario();
+ligarWhatsApp();
+
+/* ===================== WHATSAPP ===================== */
+function ligarWhatsApp(){
+  var C = window.MYTHOS; if(!C.WHATSAPP) return;
+  var T = window._mythosTrack || {utms:{}};
+  var origem = (T.utms && T.utms.utm_campaign) ? ' (vim de: ' + T.utms.utm_campaign + ')' : '';
+  var url = 'https://wa.me/' + C.WHATSAPP + '?text=' +
+    encodeURIComponent('Olá! Vim pelo site da Mythos e quero falar sobre marketing pro meu negócio.' + origem);
+  document.querySelectorAll('.wa-link').forEach(function(a){
+    a.href = url; a.hidden = false; a.classList.add('on');
+  });
+  var fab = document.getElementById('wafab');
+  if(fab) fab.addEventListener('click', function(){
+    if(C.PIXEL_ID) fbq('track','Contact');
+    if(C.ADS_ID && C.ADS_LABEL_WA) gtag('event','conversion',{send_to:C.ADS_ID+'/'+C.ADS_LABEL_WA});
+  });
+}
+
+/* ===================== FORMULÁRIO ===================== */
+function ligarFormulario(){
+  var form = document.getElementById('leadForm');
+  var success = document.getElementById('success');
+  if(!form) return;
+
+  /* --- máscaras --- */
+  var tel = document.getElementById('telefone');
+  tel.addEventListener('input', function(e){
+    // começou com "+" = número estrangeiro (PY etc.): sem máscara BR
+    if(e.target.value.trim().charAt(0) === '+'){
+      e.target.value = '+' + e.target.value.replace(/\D/g,'').slice(0,15);
+      return;
+    }
+    var v = e.target.value.replace(/\D/g,'').slice(0,11);
+    if(v.length>10) v = v.replace(/(\d{2})(\d{5})(\d{0,4}).*/,'($1) $2-$3');
+    else if(v.length>6) v = v.replace(/(\d{2})(\d{4})(\d{0,4}).*/,'($1) $2-$3');
+    else if(v.length>2) v = v.replace(/(\d{2})(\d{0,5}).*/,'($1) $2');
+    else if(v.length>0) v = v.replace(/(\d{0,2}).*/,'($1');
+    e.target.value = v;
+  });
+  /* --- acessibilidade dos erros --- */
+  form.querySelectorAll('.field').forEach(function(fd){
+    var msg = fd.querySelector('.err-msg'), inp = fd.querySelector('input,select');
+    if(msg && inp){ msg.id = 'err-' + inp.id; inp.setAttribute('aria-describedby', msg.id); }
+  });
+  function setError(field, on){
+    field.closest('.field').classList.toggle('error', on);
+    field.setAttribute('aria-invalid', on ? 'true' : 'false');
+  }
+  var isEmail = function(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); };
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var ok = true;
+    var nome=form.nome, email=form.email, telefone=form.telefone, fat=form.faturamento;
+    if(!nome.value.trim()){setError(nome,true);ok=false;} else setError(nome,false);
+    if(!isEmail(email.value)){setError(email,true);ok=false;} else setError(email,false);
+    if(telefone.value.replace(/\D/g,'').length<10){setError(telefone,true);ok=false;} else setError(telefone,false);
+    if(!fat.value){setError(fat,true);ok=false;} else setError(fat,false);
+    if(!ok){
+      var f = form.querySelector('.field.error');
+      if(f) f.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    var T = window._mythosTrack, C = window.MYTHOS;
+    var eventId = T.novoEventId();
+    var partes = nome.value.trim().split(/\s+/);
+    // empresa/cnpj saíram do formulário (4 campos convertem mais), mas seguem no
+    // payload em branco: a planilha monta a linha pelos cabeçalhos e as colunas
+    // continuam existindo — some a chave, some o alinhamento das colunas.
+    var payload = Object.assign({}, T.base(), {
+      event_id: eventId,
+      nome: nome.value.trim(), email: email.value.trim().toLowerCase(),
+      telefone: telefone.value.trim(), empresa: '',
+      cnpj: '', faturamento: fat.value
+    });
+
+    // Meta: pixel no browser + CAPI no Apps Script, mesmo event_id → a Meta deduplica
+    if(C.PIXEL_ID) fbq('track','Lead',{},{eventID:eventId});
+
+    // Google: enhanced conversions com dado do state, nunca raspando o DOM
+    if(C.ADS_ID && C.ADS_LABEL){
+      var d = payload.telefone.replace(/\D/g,'');
+      var jaTemDDI = payload.telefone.trim().charAt(0) === '+';   // DDI do que a pessoa digitou, nunca do IP
+      gtag('set','user_data',{
+        email: payload.email,
+        phone_number: '+' + (jaTemDDI ? d : '55'+d),
+        address: {first_name: partes[0]||'', last_name: partes.slice(1).join(' ')}
+      });
+      gtag('event','conversion',{send_to: C.ADS_ID+'/'+C.ADS_LABEL, transaction_id: eventId});
+    }
+
+    var btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.style.opacity = .55;
+
+    var jaMostrou = false;
+    var mostrarSucesso = function(){
+      if(jaMostrou) return; jaMostrou = true;
+      form.style.display = 'none';
+      success.classList.add('show');
+      if(window.ScrollTrigger) ScrollTrigger.refresh();
+    };
+
+    // text/plain evita preflight (o Apps Script não responde OPTIONS); no-cors é o plano B
+    fetch(C.ENDPOINT, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)})
+      .then(function(r){ return r.json(); })
+      .then(function(r){ if(!r.ok) console.warn('lead recusado pelo endpoint', r); })
+      .catch(function(){
+        return fetch(C.ENDPOINT, {method:'POST', mode:'no-cors',
+          headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)}).catch(function(){});
+      })
+      .finally(mostrarSucesso);
+    setTimeout(mostrarSucesso, 4000);
+  });
+}
+
+})();
+</script>
+</body>
+</html>
