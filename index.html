@@ -315,11 +315,23 @@ footer{padding:60px 24px 40px;border-top:1px solid var(--line)}
   .foot{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){
-  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
-  .reveal{opacity:1!important;transform:none!important}
-  .marquee .track{animation:none!important}
+  html:not(.anim) *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  html:not(.anim) .reveal{opacity:1!important;transform:none!important}
+  html:not(.anim) .marquee .track{animation:none!important}
 }
 </style>
+
+<script>
+/* ------------------------------------------------------------------
+   FORÇAR ANIMAÇÃO
+   O Windows com "animações desligadas" (MinAnimate=0) liga o
+   prefers-reduced-motion, e isso desligava a palavra rotativa do hero
+   e o giro da roda de serviços. Igor pediu para rodar mesmo assim.
+   Trocar para false devolve o respeito à preferência do visitante.
+   ------------------------------------------------------------------ */
+window.MYTHOS_FORCAR_ANIMACAO = true;
+if (window.MYTHOS_FORCAR_ANIMACAO) document.documentElement.classList.add('anim');
+</script>
 
 <!-- ============ CONFIG · preencher os IDs aqui, só aqui ============ -->
 <script>
@@ -684,7 +696,8 @@ window.MYTHOS = {
 <script>
 (function(){
   "use strict";
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefereMenos = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = window.MYTHOS_FORCAR_ANIMACAO ? false : prefereMenos;
   if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
   /* ---------- scroll nativo (Lenis removido a pedido — voltou ao de antes) ---------- */
