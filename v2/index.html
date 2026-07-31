@@ -86,8 +86,18 @@ section{position:relative;scroll-margin-top:72px}
 .inv .lbl{color:#fff}
 .inv .lbl::before{background:#fff}
 
-h1,h2,h3{font-weight:900;letter-spacing:-.045em;line-height:.92;text-wrap:balance}
+/* line-height .92 é entrelinha de manchete em INGLÊS. Em português o acento não
+   cabe: um "i" logo abaixo de um "q" precisa de 0,94em (descida 0,21 + pingo 0,73)
+   e um "ã" sob descida precisa de 0,99em. Em .92 o pingo do i subia para dentro da
+   linha de cima. 1.04 mantém a compressão editorial e dá folga para o diacrítico. */
+h1,h2,h3{font-weight:900;letter-spacing:-.045em;line-height:1.04;text-wrap:balance}
 .h-xl{font-size:clamp(42px,8.6vw,124px)}
+/* Linha do hero dividida pelo SplitText. O mask:'lines' embrulha cada linha num
+   container com overflow:clip que recorta na altura da caixa de linha — e a perna
+   do "g" de "gente" descia 0,21em abaixo dela e saía cortada reta.
+   O padding aqui empurra a borda de recorte para baixo do glifo. Fica no elemento
+   interno de propósito: assim a máscara cresce junto e a área visível acompanha. */
+.hl{padding-bottom:.2em}
 .h-lg{font-size:clamp(34px,6.4vw,88px)}
 .h-md{font-size:clamp(26px,3.8vw,52px);letter-spacing:-.035em;line-height:1}
 .lead{font-size:clamp(16px,1.35vw,20px);color:var(--tinta-60);max-width:56ch;font-weight:500}
@@ -559,7 +569,7 @@ window.MYTHOS = {
     <div class="facts">
       <div class="fact rv">
         <div class="v">5,49% <em>→</em> 51,36%</div>
-        <div class="k">Qualificação de lead · case Liderança</div>
+        <div class="k">Qualificação de lead · cliente B2B de facilities</div>
       </div>
       <div class="fact rv">
         <div class="v">2 países</div>
@@ -685,7 +695,7 @@ window.MYTHOS = {
 
     <div class="case-grid">
       <dl class="case-meta rv">
-        <dt>Cliente</dt><dd>Liderança Serviços — facilities e terceirização, B2B</dd>
+        <dt>Cliente</dt><dd>Empresa de facilities e terceirização, B2B — nome preservado por acordo</dd>
         <dt>O problema</dt><dd>A conta gerava lead em volume, mas a maioria era candidato a vaga de emprego. O comercial gastava o dia atendendo quem nunca ia comprar.</dd>
         <dt>O que foi feito</dt><dd>Lista de negativas de modificadores de emprego, keywords B2B em frase e qualificação por estágio realimentando a campanha — a conta passou a aprender quem compra.</dd>
       </dl>
@@ -1004,10 +1014,12 @@ ScrollTrigger.batch('.rv', {
    autoSplit re-divide sozinho quando a fonte carrega ou a largura muda. */
 document.fonts.ready.then(function(){
   SplitText.create('#heroH1', {
-    type:'lines', mask:'lines', autoSplit:true,
+    type:'lines', mask:'lines', autoSplit:true, linesClass:'hl',
     onSplit:function(self){
       return gsap.timeline()
-        .from(self.lines, {yPercent:110, duration:1, ease:'expo.out', stagger:.11})
+        // 130 e não 110: a linha ganhou padding embaixo (ver .hl no CSS) para o
+        // "g" não ser fatiado, e com 110 ela espiava por dentro desse padding
+        .from(self.lines, {yPercent:130, duration:1, ease:'expo.out', stagger:.11})
         // o bloco roxo só varre depois da última linha assentar
         .add(function(){ document.documentElement.classList.add('mark-go'); }, '-=0.15');
     }
