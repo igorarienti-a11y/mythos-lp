@@ -1,0 +1,1362 @@
+/* =========================================================================
+   MYTHOS v3 — design system portado da v2 sem desvio visual.
+   Regras que definem o visual:
+   1. ZERO glow "decorativo". Peso vem de massa de cor chapada e contraste.
+      A única luz da página é o border-beam do CTA, e ela é intencional.
+   2. Cantos vivos. radius 0 em tudo, exceto o pill do WhatsApp.
+   3. Preto é TINTA DE TEXTO, nunca fundo de seção (só o rodapé).
+   4. Tipografia em escala bruta: o H1 ocupa a largura, não o centro.
+
+   Fica FORA de @layer de propósito: CSS sem camada vence o @layer base do
+   Tailwind/shadcn, então o body da Mythos não é sobrescrito pelo preset.
+   ========================================================================= */
+:root {
+  /* branco levemente puxado para o roxo da marca: branco puro não existe na
+     natureza e deixa a página com cara de documento, não de peça */
+  --branco: #fdfcfe;
+  --osso: #f2eef5;
+  --tinta: #0a0710;
+  /* Os dois tons de texto passam WCAG AA sobre --branco. */
+  --tinta-60: rgba(10, 7, 16, 0.72);
+  --tinta-40: rgba(10, 7, 16, 0.6);
+  /* só para traço e ícone, nunca para texto */
+  --tinta-deco: rgba(10, 7, 16, 0.4);
+  --roxo: #5c068c;
+  --roxo-esc: #3b0459;
+  --roxo-cl: #7b1fb0;
+  --neon: #a640ff;
+  --linha: rgba(10, 7, 16, 0.14);
+  --linha-inv: rgba(255, 255, 255, 0.22);
+  --branco-mut: rgba(255, 255, 255, 0.62);
+  --max: 1320px;
+
+  /* escala de espaço 4pt */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+
+  /* as três famílias chegam do next/font como variáveis com fallback local */
+  --mono: var(--font-azeret), ui-monospace, "Cascadia Mono", monospace;
+  --sans: var(--font-montserrat), system-ui, sans-serif;
+  --serif: var(--font-dmserif), Georgia, serif;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  font-family: var(--sans);
+  background: var(--branco);
+  color: var(--tinta);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body.no-scroll {
+  overflow: hidden;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+::selection {
+  background: var(--roxo);
+  color: #fff;
+}
+:focus-visible {
+  outline: 3px solid var(--roxo);
+  outline-offset: 3px;
+}
+/* sobre bloco roxo o anel roxo desaparece: inverte para branco */
+.inv :focus-visible,
+.dark-zone :focus-visible,
+header.over-dark :focus-visible {
+  outline-color: #fff;
+}
+.inv .form-card :focus-visible {
+  outline-color: var(--roxo);
+}
+
+/* ---------- primitivos ---------- */
+/* width:100% é obrigatório: dentro de um flex container em coluna (.svc-stage) o
+   `margin:0 auto` com width auto vira shrink-to-fit e a faixa encolhe pro texto */
+.wrap {
+  max-width: var(--max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 56px);
+  position: relative;
+}
+section {
+  position: relative;
+  scroll-margin-top: 72px;
+}
+.pad {
+  padding: clamp(84px, 12vh, 168px) 0;
+}
+
+.lbl {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--roxo);
+}
+.lbl::before {
+  content: "";
+  width: 34px;
+  height: 2px;
+  background: var(--roxo);
+  flex: 0 0 auto;
+}
+.inv .lbl {
+  color: #fff;
+}
+.inv .lbl::before {
+  background: #fff;
+}
+
+/* line-height 1.04 e não .92: em português o acento não cabe em entrelinha de
+   manchete inglesa — o pingo do "i" sobe para dentro da linha de cima. */
+h1,
+h2,
+h3 {
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.h-xl {
+  font-size: clamp(42px, 8.6vw, 124px);
+}
+/* O mask:'lines' do SplitText recorta na altura da caixa de linha — e a perna do
+   "g" de "gente" descia 0,21em abaixo dela e saía cortada reta. O padding empurra
+   a borda de recorte para baixo do glifo. */
+.hl {
+  padding-bottom: 0.2em;
+}
+.h-lg {
+  font-size: clamp(34px, 6.4vw, 88px);
+}
+.h-md {
+  font-size: clamp(26px, 3.8vw, 52px);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.lead {
+  font-size: clamp(16px, 1.35vw, 20px);
+  color: var(--tinta-60);
+  max-width: 56ch;
+  font-weight: 500;
+}
+.inv .lead {
+  color: rgba(255, 255, 255, 0.72);
+}
+.it {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Marca de destaque: bloco roxo varrendo atrás da palavra.
+   O estado PADRÃO é o bloco JÁ pintado — se o JS morrer, a palavra continua
+   legível. Só depois de "armar" é que ela começa recolhida. */
+.mark {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.12em;
+  isolation: isolate;
+  color: #fff;
+  transition: color 0.4s ease 0.28s;
+}
+.mark::before {
+  content: "";
+  position: absolute;
+  inset: 0.06em -0.02em 0.04em;
+  background: var(--roxo);
+  z-index: -1;
+  transform: scaleX(1);
+  transform-origin: left center;
+  transition: transform 0.85s cubic-bezier(0.16, 0.84, 0.28, 1);
+}
+html.arm .mark {
+  color: var(--roxo);
+}
+html.arm .mark::before {
+  transform: scaleX(0);
+}
+html.mark-go .mark {
+  color: #fff;
+}
+html.mark-go .mark::before {
+  transform: scaleX(1);
+}
+
+/* ---------- botões ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+  border: 0;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background: var(--roxo);
+  padding: 20px 34px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+.btn span.t {
+  position: relative;
+  z-index: 2;
+}
+.btn .arr {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.35s cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--tinta);
+  transform: translateY(101%);
+  transition: transform 0.38s cubic-bezier(0.2, 0.75, 0.2, 1);
+  z-index: 1;
+}
+.btn:hover::after {
+  transform: translateY(0);
+}
+.btn:hover .arr {
+  transform: translateX(7px);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--tinta);
+  box-shadow: inset 0 0 0 2px var(--tinta);
+}
+.btn.ghost:hover {
+  color: #fff;
+}
+.btn.ghost::after {
+  background: var(--tinta);
+}
+.inv .btn {
+  background: #fff;
+  color: var(--roxo);
+}
+.inv .btn::after {
+  background: var(--tinta);
+}
+.inv .btn:hover {
+  color: #fff;
+}
+.inv .btn.ghost {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+/* o card do formulário é branco DENTRO da seção roxa: sem isto o .inv deixa o
+   botão branco sobre fundo branco e o CTA principal da página some */
+.inv .form-card .btn {
+  background: var(--roxo);
+  color: #fff;
+}
+.inv .form-card .btn::after {
+  background: var(--tinta);
+}
+.inv .form-card .btn:hover {
+  color: #fff;
+}
+
+/* wrapper magnético: o transform mora aqui, nunca no .btn — o .btn já usa
+   transform nos filhos e sobrepor os dois briga com a transição do ::after */
+.mag {
+  display: inline-flex;
+  will-change: transform;
+}
+.mag--block {
+  display: flex;
+  width: 100%;
+}
+.mag--block > * {
+  width: 100%;
+}
+
+/* border-beam do CTA: o pacote injeta radius próprio, aqui ele volta a 0 para
+   não quebrar a regra de cantos vivos da marca */
+.beam-wrap,
+.beam-wrap * {
+  border-radius: 0 !important;
+}
+.beam-wrap {
+  display: inline-flex;
+}
+.beam-wrap--block {
+  display: flex;
+  width: 100%;
+}
+.beam-wrap--block > * {
+  width: 100%;
+}
+
+/* ---------- header (fora do smooth-wrapper: é fixed) ---------- */
+header.site {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--linha);
+  transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+}
+header.site.over-dark {
+  background: rgba(59, 4, 89, 0.92);
+  border-color: var(--linha-inv);
+  color: #fff;
+}
+.nav {
+  max-width: var(--max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(20px, 4vw, 56px);
+  height: 68px;
+}
+.brand {
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  font-size: 17px;
+  padding: var(--s-3) 0 var(--s-3) 0.28em;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+}
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  position: relative;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.nav-links a:hover {
+  opacity: 1;
+}
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -5px;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition: width 0.3s cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.nav-links a:hover::after {
+  width: 100%;
+}
+.nav-links a.btn {
+  opacity: 1;
+  padding: 13px 22px;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+.nav-links a.btn::after {
+  left: auto;
+  bottom: auto;
+  width: auto;
+  height: auto;
+  background: var(--tinta);
+}
+.progress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--roxo);
+  width: 0;
+  z-index: 2;
+}
+header.site.over-dark .progress {
+  background: #fff;
+}
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  min-width: 46px;
+  min-height: 46px;
+  z-index: 70;
+}
+.burger span {
+  width: 26px;
+  height: 2px;
+  background: currentColor;
+  transition: transform 0.3s, opacity 0.2s;
+}
+
+/* =========================== HERO =========================== */
+.hero {
+  padding: calc(68px + clamp(48px, 9vh, 110px)) 0 0;
+  background: var(--branco);
+  position: relative;
+  isolation: isolate;
+}
+/* o canvas do grid-beam mora atrás de tudo do hero e nunca captura clique */
+.hero-beam {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* apaga na base para o canvas não competir com a faixa de fatos */
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 52%,
+    transparent 92%
+  );
+}
+.hero h1 {
+  margin: var(--s-5) 0 0;
+}
+.hero .sub {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: end;
+  margin-top: clamp(34px, 5vh, 60px);
+  padding-bottom: clamp(38px, 6vh, 64px);
+}
+.hero .ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+/* faixa de fatos: mono, hairline, sem card. Prova sem enfeite. */
+.facts {
+  border-top: 1px solid var(--linha);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.fact {
+  padding: 30px 0 34px;
+  border-right: 1px solid var(--linha);
+  padding-right: 28px;
+}
+.fact:last-child {
+  border-right: 0;
+}
+.fact .v {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: clamp(26px, 3.1vw, 42px);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.fact .v em {
+  font-style: normal;
+  color: var(--roxo);
+}
+.fact .k {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--tinta-40);
+  margin-top: 12px;
+}
+
+/* ==================== FAIXA DE PROVA (marquee) ==================== */
+.strip {
+  background: var(--roxo);
+  color: #fff;
+  padding: 26px 0;
+  overflow: hidden;
+  position: relative;
+}
+.strip .track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.strip .it2 {
+  font-weight: 900;
+  font-size: clamp(19px, 2.3vw, 30px);
+  letter-spacing: -0.03em;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  white-space: nowrap;
+}
+.strip .it2::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  flex: 0 0 auto;
+  transform: rotate(45deg);
+  opacity: 0.65;
+}
+
+/* ==================== PROBLEMA (scrub palavra a palavra) ==================== */
+#problema {
+  background: var(--branco);
+}
+.prob-stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.prob-txt {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  font-size: clamp(25px, 4.3vw, 60px);
+  max-width: 20ch;
+}
+.prob-txt .w {
+  display: inline-block;
+}
+.prob-punch {
+  color: var(--roxo);
+}
+.prob-foot {
+  margin-top: clamp(30px, 5vh, 54px);
+  padding-top: 26px;
+  border-top: 1px solid var(--linha);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 40px;
+  align-items: baseline;
+}
+.prob-foot p {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--tinta-60);
+  max-width: 44ch;
+}
+
+/* ==================== SERVIÇOS (pin horizontal) ==================== */
+#servicos {
+  background: var(--roxo-esc);
+  color: #fff;
+}
+.svc-intro {
+  padding: clamp(80px, 11vh, 140px) 0 clamp(40px, 6vh, 70px);
+}
+/* O elemento pinado tem que caber na viewport: pina o PALCO (100vh), não a
+   seção inteira. A intro e o rodapé rolam normalmente por fora. */
+.svc-stage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(16px, 2.6vh, 32px);
+  padding: 76px 0 26px;
+}
+.svc-viewport {
+  overflow: hidden;
+}
+/* recuo que faz o 1º painel nascer na MESMA coluna do resto da página */
+.svc-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  padding-left: calc(
+    max(0px, (100% - var(--max)) / 2) + clamp(20px, 4vw, 56px) -
+      clamp(16px, 2.6vw, 40px)
+  );
+  padding-right: calc(
+    max(0px, (100% - var(--max)) / 2) + clamp(20px, 4vw, 56px) -
+      clamp(16px, 2.6vw, 40px)
+  );
+}
+.panel {
+  width: min(86vw, 880px);
+  flex: 0 0 auto;
+  padding: 0 clamp(16px, 2.6vw, 40px);
+  display: flex;
+  align-items: stretch;
+}
+.panel-in {
+  background: var(--branco);
+  color: var(--tinta);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(28px, 3.6vw, 54px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: min(48vh, 410px);
+}
+/* número gigante ao fundo — o índice é o elemento gráfico, não um ícone genérico */
+.panel-in .idx {
+  position: absolute;
+  right: -0.06em;
+  bottom: -0.34em;
+  font-weight: 900;
+  font-size: clamp(180px, 26vw, 330px);
+  letter-spacing: -0.07em;
+  line-height: 1;
+  color: var(--osso);
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.panel-in > * {
+  position: relative;
+  z-index: 1;
+}
+.panel-in .num {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--roxo);
+}
+.panel-in h3 {
+  font-size: clamp(28px, 3.5vw, 50px);
+  margin: var(--s-4) 0 var(--s-4);
+  line-height: 0.95;
+}
+.panel-in p {
+  font-size: clamp(15px, 1.15vw, 17.5px);
+  color: var(--tinta-60);
+  max-width: 42ch;
+  font-weight: 500;
+}
+.panel-in ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-6);
+}
+.panel-in li {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  box-shadow: inset 0 0 0 1px var(--linha);
+  color: var(--tinta-60);
+}
+.svc-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+.svc-outro {
+  padding: clamp(46px, 7vh, 90px) 0 clamp(80px, 11vh, 140px);
+}
+.svc-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.28);
+  position: relative;
+  max-width: 420px;
+}
+.svc-bar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: #fff;
+  display: block;
+}
+.svc-count {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ==================== CASE ==================== */
+#case {
+  background: var(--branco);
+}
+.case-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(32px, 5vw, 88px);
+  align-items: center;
+  margin-top: var(--s-8);
+}
+.case-meta dt {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-40);
+  margin-top: 24px;
+}
+.case-meta dd {
+  font-size: 16.5px;
+  font-weight: 600;
+  margin-top: 7px;
+  max-width: 38ch;
+}
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  position: relative;
+}
+.bar-row .bl {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.bar-row .bn {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-40);
+}
+.bar-row .bv {
+  font-weight: 900;
+  font-size: clamp(30px, 4.6vw, 64px);
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.bar {
+  height: 14px;
+  background: var(--osso);
+  position: relative;
+  overflow: hidden;
+}
+.bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--tinta-40);
+}
+.bar-row.hi .bv {
+  color: var(--roxo);
+}
+.bar-row.hi .bar i {
+  background: var(--roxo);
+}
+.case-x {
+  font-weight: 900;
+  font-size: clamp(40px, 7vw, 96px);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--roxo);
+  margin-top: 8px;
+}
+.case-note {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--tinta-40);
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--linha);
+  max-width: 60ch;
+}
+/* o pixel-reveal cobre o bloco de barras e se dissolve na entrada */
+.px-host {
+  position: relative;
+}
+.px-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ==================== MÉTODO ==================== */
+#metodo {
+  background: var(--osso);
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 2.4vw, 32px);
+  margin-top: var(--s-8);
+  position: relative;
+}
+.step {
+  position: relative;
+  padding-top: 34px;
+  border-top: 2px solid var(--linha);
+}
+/* no desktop quem marca o avanço é a linha desenhada (DrawSVG) por cima;
+   abaixo de 1025px a linha é escondida, então o trilho volta a ser a borda */
+.step.on {
+  border-top-color: var(--roxo);
+}
+@media (min-width: 1025px) {
+  .step.on {
+    border-top-color: var(--linha);
+  }
+}
+.step .sn {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--roxo);
+}
+.step h3 {
+  font-size: clamp(20px, 2.05vw, 29px);
+  margin: var(--s-3) 0 var(--s-3);
+  line-height: 1.02;
+}
+.step p {
+  font-size: 15px;
+  color: var(--tinta-60);
+  font-weight: 500;
+}
+.loop {
+  margin-top: var(--s-7);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--roxo);
+}
+.loop svg {
+  width: 26px;
+  height: 26px;
+  stroke: var(--roxo);
+  fill: none;
+  stroke-width: 2;
+  flex: 0 0 auto;
+}
+/* width:100% explícito: SVG é elemento substituído e cai na largura intrínseca
+   de 300px se só left/right forem definidos */
+#metodoLine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 2px;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* ==================== BR + PY ==================== */
+#fronteira {
+  background: var(--branco);
+}
+.paises {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 56px;
+  border-top: 1px solid var(--linha);
+}
+.pais {
+  padding: clamp(34px, 4.6vw, 62px) clamp(24px, 3vw, 48px);
+  border-right: 1px solid var(--linha);
+}
+.pais:last-child {
+  border-right: 0;
+}
+.pais .fl {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--roxo);
+  font-weight: 600;
+}
+.pais h3 {
+  font-size: clamp(30px, 4.4vw, 62px);
+  margin: 16px 0 16px;
+}
+.pais p {
+  font-size: 16px;
+  color: var(--tinta-60);
+  max-width: 34ch;
+  font-weight: 500;
+}
+
+/* ==================== CONTATO ==================== */
+#contato {
+  background: var(--roxo);
+  color: #fff;
+}
+.ct-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: clamp(36px, 5vw, 80px);
+  align-items: start;
+  margin-top: 48px;
+}
+.cinfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--s-6);
+  border-top: 1px solid var(--linha-inv);
+}
+.cinfo a,
+.cinfo span.ci {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 19px 0;
+  border-bottom: 1px solid var(--linha-inv);
+  font-family: var(--mono);
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  transition: padding-left 0.3s cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.cinfo a:hover {
+  padding-left: 12px;
+}
+.cinfo svg {
+  width: 19px;
+  height: 19px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.7;
+  flex: 0 0 auto;
+}
+.cinfo a[hidden] {
+  display: none;
+}
+
+.form-card {
+  background: var(--branco);
+  color: var(--tinta);
+  padding: clamp(26px, 3.4vw, 48px);
+}
+form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field.full {
+  grid-column: 1 / -1;
+}
+label {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-40);
+}
+label .req {
+  color: var(--roxo);
+}
+input,
+select {
+  font-family: var(--sans);
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--linha);
+  border-radius: 0;
+  padding: 12px 0;
+  min-height: 46px;
+  width: 100%;
+  transition: border-color 0.22s;
+}
+input::placeholder {
+  color: var(--tinta-40);
+  font-weight: 500;
+}
+input:focus,
+select:focus {
+  outline: none;
+  border-bottom-color: var(--roxo);
+}
+select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='none' stroke='%235C068C' stroke-width='2.4'%3E%3Cpath d='M1.5 4l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
+}
+.field.error input,
+.field.error select {
+  border-bottom-color: #d91e4a;
+}
+.err-msg {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #d91e4a;
+  display: none;
+}
+.field.error .err-msg {
+  display: block;
+}
+form .beam-wrap,
+form .mag {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+form .btn {
+  width: 100%;
+  padding: 22px;
+}
+.reassure {
+  grid-column: 1 / -1;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 4px;
+}
+.reassure li {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--tinta-60);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.reassure li::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--roxo);
+  flex: 0 0 auto;
+  transform: rotate(45deg);
+}
+.form-note {
+  grid-column: 1 / -1;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--tinta-40);
+}
+.success {
+  display: none;
+  padding: 24px 0;
+}
+.success.show {
+  display: block;
+}
+.success .ck {
+  width: 56px;
+  height: 56px;
+  background: var(--roxo);
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--s-5);
+}
+.success .ck svg {
+  width: 28px;
+  height: 28px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 2.6;
+}
+.success h3 {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+.success p {
+  color: var(--tinta-60);
+  max-width: 40ch;
+  font-weight: 500;
+}
+
+/* ==================== FOOTER ==================== */
+footer.site {
+  background: var(--tinta);
+  color: #fff;
+  padding: clamp(56px, 8vh, 90px) 0 36px;
+}
+.foot {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 36px;
+}
+.foot .slogan {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  color: rgba(255, 255, 255, 0.62);
+  margin-top: 16px;
+  max-width: 26ch;
+}
+.foot h4 {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--branco-mut);
+  margin-bottom: var(--s-4);
+}
+.foot a,
+.foot .fi {
+  display: block;
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 11px 0;
+  transition: color 0.2s;
+}
+.foot a:hover {
+  color: #fff;
+}
+.foot-bottom {
+  margin-top: var(--s-7);
+  padding-top: var(--s-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--branco-mut);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ==================== FLUTUANTES ==================== */
+.mcta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+  display: none;
+  padding: 0 0 env(safe-area-inset-bottom);
+  transition: transform 0.32s cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.mcta.hide {
+  transform: translateY(110%);
+}
+.mcta .btn {
+  width: 100%;
+  padding: 19px;
+}
+.wafab {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 56;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: none;
+  place-items: center;
+  background: #25d366;
+  transition: transform 0.3s cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.wafab.on {
+  display: grid;
+}
+.wafab:hover {
+  transform: scale(1.08);
+}
+.wafab svg {
+  width: 29px;
+  height: 29px;
+  fill: #fff;
+}
+
+/* ==================== REVEAL genérico (fallback) ==================== */
+.rv {
+  opacity: 0;
+  transform: translateY(26px);
+}
+html.no-anim .rv {
+  opacity: 1;
+  transform: none;
+}
+/* scramble: reserva a caixa para o texto embaralhado não empurrar o layout */
+.scr {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+/* ==================== RESPONSIVO ==================== */
+@media (max-width: 1024px) {
+  .case-grid,
+  .ct-grid {
+    grid-template-columns: 1fr;
+  }
+  .steps {
+    grid-template-columns: 1fr 1fr;
+  }
+  #metodoLine {
+    display: none;
+  }
+}
+@media (max-width: 860px) {
+  .nav-links {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: 82%;
+    max-width: 360px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 26px;
+    background: var(--roxo);
+    color: #fff;
+    padding: 90px 34px 40px;
+    transform: translateX(100%);
+    transition: transform 0.42s cubic-bezier(0.2, 0.75, 0.2, 1);
+  }
+  .nav-links.open {
+    transform: translateX(0);
+  }
+  .nav-links a {
+    font-size: 16px;
+    opacity: 1;
+  }
+  .nav-links a.btn {
+    width: 100%;
+    background: #fff;
+    color: var(--roxo);
+  }
+  .burger {
+    display: flex;
+  }
+  .burger.x span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .burger.x span:nth-child(2) {
+    opacity: 0;
+  }
+  .burger.x span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+  .mcta {
+    display: block;
+  }
+  .wafab {
+    bottom: 88px;
+    right: 16px;
+    width: 50px;
+    height: 50px;
+  }
+  .wafab svg {
+    width: 26px;
+    height: 26px;
+  }
+  .hero .sub {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 26px;
+  }
+  .facts {
+    grid-template-columns: 1fr;
+  }
+  .fact {
+    border-right: 0;
+    border-bottom: 1px solid var(--linha);
+    padding: 22px 0;
+  }
+  .fact:last-child {
+    border-bottom: 0;
+  }
+  .paises {
+    grid-template-columns: 1fr;
+  }
+  .pais {
+    border-right: 0;
+    border-bottom: 1px solid var(--linha);
+  }
+  .pais:last-child {
+    border-bottom: 0;
+  }
+  .foot {
+    grid-template-columns: 1fr 1fr;
+  }
+  .panel {
+    width: 88vw;
+  }
+  .svc-foot {
+    padding-bottom: 80px;
+  }
+}
+@media (max-width: 560px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+  .steps {
+    grid-template-columns: 1fr;
+  }
+  .foot {
+    grid-template-columns: 1fr;
+  }
+  .prob-txt {
+    max-width: none;
+  }
+  .panel-in {
+    min-height: auto;
+  }
+  .panel-in .idx {
+    font-size: 170px;
+    bottom: -0.28em;
+  }
+}
+/* Igor mantém a animação ligada mesmo com "reduzir movimento" do Windows
+   (MinAnimate=0 liga o prefers-reduced-motion sem o usuário pedir). */
+@media (prefers-reduced-motion: reduce) {
+  html.no-anim * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
