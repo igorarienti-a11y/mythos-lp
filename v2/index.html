@@ -190,16 +190,75 @@ header.over-dark .progress{background:#fff}
 .strip .it2::after{content:"";width:9px;height:9px;background:#fff;flex:0 0 auto;
   transform:rotate(45deg);opacity:.65}
 
-/* ==================== PROBLEMA (scrub palavra a palavra) ==================== */
-#problema{background:var(--branco)}
-.prob-stage{min-height:100vh;display:flex;align-items:center}
+/* ============ PROBLEMA · O ORÁCULO (scrollytelling do mascote) ============
+   O mascote é o busto grego de óculos roxos — "o Oráculo", que dá nome ao
+   método. Ele fica pinado enquanto a dor é contada em quatro tempos; as
+   lentes vão enchendo de roxo (o oráculo lendo) e a tela que ele encara
+   troca de métrica até parar em "Venda?".
+   Estado padrão = tudo legível. O JS só empilha as falas e recua. */
+#problema{background:var(--osso)}
+.prob-stage{min-height:100vh;display:flex;align-items:center;overflow:hidden;
+  padding:calc(68px + var(--s-6)) 0 var(--s-6)}
+.or-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(20px,4vw,72px);
+  align-items:center;width:100%}
+
+.or-beats{position:relative}
+/* no estado padrão as quatro falas são parágrafos normais, um embaixo do
+   outro. Só quando o GSAP entra elas viram camadas sobrepostas. */
+html.anim-or .or-beats{min-height:clamp(196px,25vh,286px)}
+html.anim-or .or-beat{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center}
+.or-beat+.or-beat{margin-top:var(--s-6)}
+html.anim-or .or-beat+.or-beat{margin-top:0}
+.or-beat .bk{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--roxo);display:block;margin-bottom:var(--s-4)}
 .prob-txt{font-weight:900;letter-spacing:-.04em;line-height:1.06;
-  font-size:clamp(25px,4.3vw,60px);max-width:20ch}
-.prob-txt .w{display:inline-block}
+  font-size:clamp(25px,4vw,56px);max-width:17ch}
 .prob-punch{color:var(--roxo)}
+.or-rail{display:flex;align-items:center;gap:20px;margin-top:clamp(22px,4vh,44px)}
+.or-count{font-family:var(--mono);font-size:12.5px;letter-spacing:.18em;color:var(--tinta-40)}
+.or-bar{flex:1;max-width:300px;height:3px;background:var(--linha);position:relative}
+.or-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--roxo);display:block}
+html.no-anim .or-bar i{width:100%}
+
+/* ---------- o mascote ---------- */
+/* mármore branco sobre bloco roxo chapado sangrando pra fora da coluna:
+   é o "roxo em bloco" do sistema fazendo o trabalho de dar contraste
+   pro busto, em vez de um card com sombra */
+.or-figure{position:relative;display:flex;justify-content:center;align-items:center;margin:0}
+/* sangra nos quatro sentidos e é o overflow:hidden do palco que corta:
+   assim o busto fica DENTRO de um campo roxo, não em cima de uma faixa */
+.or-figure::before{content:"";position:absolute;left:7%;right:-100vw;top:-100vh;bottom:-100vh;
+  background:var(--roxo-esc);z-index:0}
+.or-mascot{position:relative;z-index:1;width:min(100%,430px)}
+.or-svg,.or-photo{width:100%;height:auto;display:block}
+.or-photo{display:none}
+.or-mascot.has-photo .or-svg{display:none}
+.or-mascot.has-photo .or-photo{display:block}
+/* a "tela" que o Oráculo encara: canto vivo, preta, vira roxa no veredito */
+.or-card{position:absolute;left:-2%;bottom:9%;width:min(48%,196px);background:var(--tinta);color:#fff;
+  padding:15px 16px 17px;transform:rotate(-5deg);transition:background .45s ease,color .45s ease}
+/* o veredito: a tela preta vira uma folha branca com a palavra em roxo */
+.or-card.on{background:var(--branco);color:var(--tinta)}
+.or-card.on .k{color:var(--tinta-40)}
+.or-card.on .v{color:var(--roxo)}
+.or-card.on .m{background:var(--linha)}
+.or-card.on .m i{background:var(--roxo)}
+.or-card .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(255,255,255,.62);display:block}
+.or-card .v{display:block;font-weight:900;font-size:clamp(17px,2.1vw,26px);letter-spacing:-.03em;
+  line-height:1;margin-top:12px}
+.or-card .m{display:block;height:2px;background:rgba(255,255,255,.28);margin-top:14px}
+.or-card .m i{display:block;height:100%;width:100%;background:#fff}
+
 .prob-foot{margin-top:clamp(30px,5vh,54px);padding-top:26px;border-top:1px solid var(--linha);
   display:flex;flex-wrap:wrap;gap:18px 40px;align-items:baseline}
 .prob-foot p{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--tinta-60);max-width:44ch}
+
+/* ---------- marca dos óculos: o mascote reduzido a símbolo ---------- */
+.gmark{width:26px;height:26px;flex:0 0 auto;display:block}
+.brand{display:inline-flex;align-items:center;gap:11px}
+.foot-mark{display:flex;align-items:center;gap:14px}
+.foot-mark .gmark{width:44px;height:44px}
 
 /* ==================== SERVIÇOS (pin horizontal) ==================== */
 #servicos{background:var(--roxo-esc);color:#fff}
@@ -382,12 +441,21 @@ html.no-anim .rv{opacity:1;transform:none}
   .foot{grid-template-columns:1fr 1fr}
   .panel{width:88vw}
   .svc-foot{padding-bottom:80px}
+  /* mascote sobe para o topo: ele é o gancho, o texto vem embaixo */
+  .or-grid{grid-template-columns:1fr;gap:clamp(18px,3vh,32px)}
+  .or-figure{order:-1}
+  /* no celular o bloco roxo vira uma faixa de ponta a ponta */
+  .or-figure::before{left:-100vw;right:-100vw}
+  .or-mascot{width:min(56%,236px)}
+  html.anim-or .or-beats{min-height:clamp(168px,23vh,230px)}
 }
 @media(max-width:560px){
   form{grid-template-columns:1fr}
   .steps{grid-template-columns:1fr}
   .foot{grid-template-columns:1fr}
   .prob-txt{max-width:none}
+  .or-mascot{width:min(64%,210px)}
+  .or-card{width:min(52%,150px);padding:12px 13px 14px}
   .panel-in{min-height:auto}
   .panel-in .idx{font-size:170px;bottom:-.28em}
 }
@@ -425,7 +493,11 @@ window.MYTHOS = {
   ADS_LABEL: '',           // rótulo da ação "Lead - Formulário"
   ADS_LABEL_WA: '',        // rótulo da ação "Clique WhatsApp" (opcional)
   GA4_ID:    '',           // G-XXXXXXXXXX
-  WHATSAPP:  ''            // só dígitos com DDI, ex 5548999999999
+  WHATSAPP:  '',           // só dígitos com DDI, ex 5548999999999
+  // Render do Oráculo (PNG com fundo transparente, ~1200px de altura).
+  // Vazio = usa o busto vetorial que já está na página. Preenchido = a
+  // foto entra no lugar dele. Ex.: 'img/oraculo.png'
+  MASCOTE_IMG: ''
 };
 </script>
 
@@ -519,7 +591,17 @@ window.MYTHOS = {
      transformado, position:fixed prende ao conteúdo, não à viewport ===== -->
 <header id="hdr">
   <nav class="nav">
-    <a href="#top" class="brand">MYTHOS</a>
+    <!-- os óculos do Oráculo viram o símbolo da marca: o mesmo desenho do
+         mascote, reduzido ao que dá para reconhecer em 26px -->
+    <a href="#top" class="brand">
+      <svg class="gmark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" fill="#5C068C"/>
+        <rect x="9" y="25" width="19" height="15" fill="#FDFCFE"/>
+        <rect x="36" y="25" width="19" height="15" fill="#FDFCFE"/>
+        <rect x="28" y="29" width="8" height="5" fill="#FDFCFE"/>
+      </svg>
+      MYTHOS
+    </a>
     <div class="nav-links" id="navlinks">
       <a href="#problema">Diagnóstico</a>
       <a href="#servicos">O que fazemos</a>
@@ -588,11 +670,137 @@ window.MYTHOS = {
   <div class="track" id="stripTrack"></div>
 </div>
 
-<!-- ======================= PROBLEMA (scrub) ======================= -->
+<!-- ================= PROBLEMA · O ORÁCULO (scrollytelling) =================
+     O mesmo texto que já estava aprovado, agora contado em quatro tempos
+     com o mascote. Sem número inventado em lugar nenhum: a tela mostra
+     NOME de métrica, não valor. O número real só aparece no case. -->
 <section id="problema">
   <div class="prob-stage" id="probStage">
-    <div class="wrap">
-      <p class="prob-txt" id="probTxt">Você já pagou por relatório bonito. Já ouviu que o alcance cresceu. Já viu o post bombar. E no fim do mês a pergunta continuou a mesma: <span class="prob-punch">quanto disso virou venda?</span></p>
+    <div class="wrap or-grid">
+
+      <div class="or-copy">
+        <div class="or-beats" id="orBeats">
+          <div class="or-beat">
+            <span class="bk">O relatório</span>
+            <p class="prob-txt">Você já pagou por relatório bonito.</p>
+          </div>
+          <div class="or-beat">
+            <span class="bk">A métrica</span>
+            <p class="prob-txt">Já ouviu que o alcance cresceu.</p>
+          </div>
+          <div class="or-beat">
+            <span class="bk">O aplauso</span>
+            <p class="prob-txt">Já viu o post bombar.</p>
+          </div>
+          <div class="or-beat">
+            <span class="bk">A conta</span>
+            <p class="prob-txt">E no fim do mês a pergunta continuou a mesma:
+              <span class="prob-punch">quanto disso virou venda?</span></p>
+          </div>
+        </div>
+        <div class="or-rail">
+          <span class="or-count" id="orCount">01 — 04</span>
+          <span class="or-bar"><i id="orBar"></i></span>
+        </div>
+      </div>
+
+      <figure class="or-figure">
+        <div class="or-mascot" id="orMascot">
+
+          <!-- ===== O ORÁCULO · mascote da Mythos =====
+               Vetor chapado de propósito: zero glow, canto vivo nos óculos,
+               mármore em três tons e o roxo só nas lentes. Se o Igor gerar
+               o render fotográfico, é só preencher MASCOTE_IMG no CONFIG
+               que a foto entra no lugar deste SVG. -->
+          <svg class="or-svg" viewBox="0 0 460 620" xmlns="http://www.w3.org/2000/svg"
+               role="img" aria-label="O Oraculo, mascote da Mythos: busto grego de oculos escuros roxos">
+            <defs>
+              <clipPath id="orLensA"><rect x="126" y="226" width="90" height="58"/></clipPath>
+              <clipPath id="orLensB"><rect x="244" y="226" width="90" height="58"/></clipPath>
+            </defs>
+
+            <!-- plinto -->
+            <path fill="#9E89B6" d="M118 566h224v54H118z"/>
+            <path fill="#8E77A8" d="M118 566h224v12H118z"/>
+
+            <!-- ombros -->
+            <path fill="#D8CDE4" d="M86 620c4-72 44-110 112-126l30-8 30 8c68 16 108 54 112 126z"/>
+            <path fill="#AE9BC4" d="M228 486l30 8c68 16 108 54 112 126h-74c-4-66-26-108-68-134z"/>
+
+            <!-- pescoco -->
+            <path fill="#C2B2D3" d="M190 358h80v102c0 26-80 26-80 0z"/>
+            <path fill="#AE9BC4" d="M190 358h80v28c-27 14-53 14-80 0z"/>
+
+            <!-- massa de cabelo -->
+            <ellipse cx="230" cy="250" rx="124" ry="142" fill="#AE9BC4"/>
+
+            <!-- cabeca -->
+            <ellipse cx="228" cy="252" rx="112" ry="130" fill="#E6DEEE"/>
+
+            <!-- barba, massa cheia -->
+            <path fill="#C2B2D3" d="M130 280c0 46 4 100 18 136 16 42 46 66 80 66s64-24 80-66c14-36 18-90 18-136z"/>
+
+            <!-- nariz por cima da barba: e ele que da o volume do rosto -->
+            <path fill="#E6DEEE" d="M206 244h44l17 84c3 13-12 21-39 21s-42-8-39-21z"/>
+            <path fill="#D8CDE4" d="M250 244l17 84c3 13-12 21-39 21 23-2 33-9 31-20z"/>
+
+            <!-- bigode -->
+            <path fill="#AE9BC4" d="M166 340c20-8 44-6 62 5 18-11 42-13 62-5-12 28-40 39-62 26-22 13-50 2-62-26z"/>
+
+            <!-- cachos da barba -->
+            <g fill="#AE9BC4">
+              <circle cx="156" cy="418" r="30"/><circle cx="190" cy="452" r="32"/>
+              <circle cx="228" cy="468" r="32"/><circle cx="266" cy="452" r="32"/>
+              <circle cx="300" cy="418" r="30"/>
+            </g>
+            <g fill="#C2B2D3">
+              <circle cx="175" cy="436" r="24"/><circle cx="211" cy="462" r="26"/>
+              <circle cx="245" cy="462" r="26"/><circle cx="281" cy="436" r="24"/>
+            </g>
+
+            <!-- cachos do cabelo -->
+            <g fill="#AE9BC4">
+              <circle cx="144" cy="172" r="34"/><circle cx="188" cy="136" r="36"/>
+              <circle cx="236" cy="124" r="38"/><circle cx="286" cy="138" r="36"/>
+              <circle cx="328" cy="174" r="34"/><circle cx="348" cy="226" r="30"/>
+              <circle cx="352" cy="278" r="28"/><circle cx="108" cy="226" r="30"/>
+              <circle cx="104" cy="278" r="28"/>
+            </g>
+            <g fill="#C2B2D3">
+              <circle cx="165" cy="154" r="26"/><circle cx="211" cy="127" r="28"/>
+              <circle cx="261" cy="123" r="28"/><circle cx="307" cy="148" r="26"/>
+              <circle cx="337" cy="196" r="24"/><circle cx="119" cy="196" r="24"/>
+            </g>
+
+            <!-- OCULOS - o roxo da marca mora aqui -->
+            <g class="or-glasses">
+              <g fill="#0A0710">
+                <rect x="116" y="216" width="110" height="78"/>
+                <rect x="234" y="216" width="110" height="78"/>
+                <rect x="220" y="238" width="20" height="18"/>
+                <path d="M116 224l-24-7v16l24 7z"/>
+                <path d="M344 224l24-7v16l-24 7z"/>
+              </g>
+              <rect x="126" y="226" width="90" height="58" fill="#2A0340"/>
+              <rect x="244" y="226" width="90" height="58" fill="#2A0340"/>
+              <g clip-path="url(#orLensA)"><rect class="or-lens-fill" x="126" y="226" width="90" height="58" fill="#5C068C"/></g>
+              <g clip-path="url(#orLensB)"><rect class="or-lens-fill" x="244" y="226" width="90" height="58" fill="#5C068C"/></g>
+              <!-- reflexo chapado: uma diagonal, nao um brilho -->
+              <path fill="#FDFCFE" opacity=".2" d="M136 284l32-58h20l-32 58z"/>
+              <path fill="#FDFCFE" opacity=".2" d="M254 284l32-58h20l-32 58z"/>
+            </g>
+          </svg>
+
+          <img class="or-photo" id="orPhoto" alt="" />
+
+          <div class="or-card" id="orCard">
+            <span class="k">Relatório do mês</span>
+            <span class="v" id="orCardV">Alcance</span>
+            <span class="m"><i></i></span>
+          </div>
+        </div>
+      </figure>
+
     </div>
   </div>
   <div class="wrap" style="padding-bottom:clamp(70px,10vh,120px)">
@@ -867,7 +1075,15 @@ window.MYTHOS = {
   <div class="wrap">
     <div class="foot">
       <div>
-        <span class="brand">MYTHOS</span>
+        <div class="foot-mark">
+          <svg class="gmark" viewBox="0 0 64 64" aria-hidden="true">
+            <rect width="64" height="64" fill="#5C068C"/>
+            <rect x="9" y="25" width="19" height="15" fill="#FDFCFE"/>
+            <rect x="36" y="25" width="19" height="15" fill="#FDFCFE"/>
+            <rect x="28" y="29" width="8" height="5" fill="#FDFCFE"/>
+          </svg>
+          <span class="brand">MYTHOS</span>
+        </div>
         <p class="slogan">Estrutura que vende hoje. Marca que fica pra sempre.</p>
       </div>
       <div>
@@ -924,6 +1140,22 @@ var MARCAS = ['Amora Lingerie','Via Center','Parisis Estética','Rita Pimentel',
   var html = MARCAS.map(function(m){ return '<span class="it2">'+m+'</span>'; }).join('');
   t.innerHTML = html + html;                       // duas cópias = loop de -50%
 })();
+
+/* ===================== MASCOTE (independe do GSAP) =====================
+   Troca o busto vetorial pelo render, se houver um configurado. Roda antes
+   de qualquer animação porque o GSAP precisa saber em qual dos dois mexer. */
+function ligarMascote(){
+  var src = (window.MYTHOS && window.MYTHOS.MASCOTE_IMG) || '';
+  if(!src) return;
+  var img = document.getElementById('orPhoto');
+  var box = document.getElementById('orMascot');
+  if(!img || !box) return;
+  // só troca depois que a imagem carrega: link quebrado mantém o vetor
+  img.onload = function(){ box.classList.add('has-photo'); };
+  img.alt = 'O Oráculo, mascote da Mythos: busto grego de óculos escuros roxos';
+  img.src = src;
+}
+ligarMascote();
 
 /* ===================== NAV (independe do GSAP) ===================== */
 var hdr = document.getElementById('hdr');
@@ -1050,20 +1282,64 @@ document.fonts.ready.then(function(){
   });
 })();
 
-/* ============ 3. PROBLEMA — leitura forçada palavra a palavra ============
-   A seção trava e o texto acende conforme você rola. Obriga a ler a dor
-   inteira antes de liberar a página — é o momento de conversão da LP. */
+/* ============ 3. PROBLEMA · O ORÁCULO — scrollytelling do mascote ============
+   A seção trava e a dor é contada em quatro tempos. Três coisas andam
+   juntas e amarradas ao MESMO scrub, que é o que faz parecer uma cena e
+   não três animações soltas:
+     a) a fala troca (crossfade vertical curto);
+     b) as lentes enchem de roxo de baixo para cima — o oráculo lendo;
+     c) a tela que ele encara troca de métrica e vira roxa no veredito.
+   O busto sai inclinado para baixo (olhando a tela) e endireita: no fim
+   ele está encarando quem lê, no exato momento da pergunta. */
 (function(){
-  var txt = document.getElementById('probTxt'); if(!txt) return;
-  var split = SplitText.create(txt, {type:'words', wordsClass:'w'});
-  gsap.set(split.words, {opacity:.13});
-  gsap.to(split.words, {
-    opacity:1, ease:'none', stagger:.4,
+  var stage = document.getElementById('probStage'); if(!stage) return;
+  var beats = gsap.utils.toArray('#problema .or-beat');
+  var N = beats.length; if(!N) return;
+  var bar   = document.getElementById('orBar');
+  var count = document.getElementById('orCount');
+  var card  = document.getElementById('orCard');
+  var cardV = document.getElementById('orCardV');
+  var svg   = document.querySelector('#orMascot .or-svg, #orMascot .or-photo');
+  var lentes= gsap.utils.toArray('#problema .or-lens-fill');
+  var TELA  = ['Alcance','Impressões','Engajamento','Venda?'];
+
+  // só agora as falas viram camadas: antes disto elas são 4 parágrafos
+  document.documentElement.classList.add('anim-or');
+
+  gsap.set(beats, {autoAlpha:0, yPercent:9});
+  gsap.set(beats[0], {autoAlpha:1, yPercent:0});
+  // nunca zero: lente vazia vira buraco preto e o óculos deixa de ler
+  gsap.set(lentes, {scaleY:.18, transformOrigin:'50% 100%'});
+  gsap.set(svg, {rotation:-4, transformOrigin:'50% 78%'});
+
+  var ultima = -1;
+  var tl = gsap.timeline({
+    defaults:{ease:'none'},
     scrollTrigger:{
-      trigger:'#probStage', start:'top top', end:'+=130%',
-      pin:true, scrub:.35, anticipatePin:1, invalidateOnRefresh:true
+      trigger:stage, start:'top top', end:'+=' + (N*78) + '%',
+      pin:true, scrub:.5, anticipatePin:1, invalidateOnRefresh:true,
+      onUpdate:function(self){
+        var p = self.progress;
+        bar.style.width = (p*100).toFixed(2) + '%';
+        var i = Math.min(N, Math.floor(p*N) + 1);
+        if(i === ultima) return;
+        ultima = i;
+        count.textContent = ('0'+i).slice(-2) + ' — 0' + N;
+        cardV.textContent = TELA[i-1];
+        card.classList.toggle('on', i === N);
+      }
     }
   });
+
+  tl.to(lentes, {scaleY:1, duration:N-0.7}, 0)
+    .to(svg, {rotation:0, duration:N-0.7}, 0);
+  for(var i=1;i<N;i++){
+    tl.to(beats[i-1], {autoAlpha:0, yPercent:-9, duration:.3}, i-0.15)
+      .fromTo(beats[i], {autoAlpha:0, yPercent:9}, {autoAlpha:1, yPercent:0, duration:.3}, i-0.15);
+  }
+  // a tela se endireita e sobe junto com o veredito
+  tl.to(card, {rotation:0, yPercent:-9, duration:.45}, N-1)
+    .to({}, {duration:.45});
 })();
 
 /* ============ 4. SERVIÇOS — pin horizontal + inclinação por velocidade ============ */
