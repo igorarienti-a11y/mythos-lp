@@ -234,21 +234,31 @@ html.no-anim .or-bar i{width:100%}
 .or-photo{display:none}
 .or-mascot.has-photo .or-svg{display:none}
 .or-mascot.has-photo .or-photo{display:block}
-/* a "tela" que o Oráculo encara: canto vivo, preta, vira roxa no veredito */
-.or-card{position:absolute;left:-2%;bottom:9%;width:min(48%,196px);background:var(--tinta);color:#fff;
-  padding:15px 16px 17px;transform:rotate(-5deg);transition:background .45s ease,color .45s ease}
-/* o veredito: a tela preta vira uma folha branca com a palavra em roxo */
-.or-card.on{background:var(--branco);color:var(--tinta)}
-.or-card.on .k{color:var(--tinta-40)}
-.or-card.on .v{color:var(--roxo)}
-.or-card.on .m{background:var(--linha)}
-.or-card.on .m i{background:var(--roxo)}
-.or-card .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-  color:rgba(255,255,255,.62);display:block}
-.or-card .v{display:block;font-weight:900;font-size:clamp(17px,2.1vw,26px);letter-spacing:-.03em;
-  line-height:1;margin-top:12px}
-.or-card .m{display:block;height:2px;background:rgba(255,255,255,.28);margin-top:14px}
-.or-card .m i{display:block;height:100%;width:100%;background:#fff}
+/* ---------- os relatórios ----------
+   Não é uma tela trocando de texto: é PILHA. Cada rolagem sobe mais um
+   relatório na frente do Oráculo e o anterior fica embaixo, acumulando.
+   No veredito os três caem fora de uma vez e sobra a folha branca.
+   Ficam na FRENTE do busto, nunca na mão dele: mão trava a pose e aí o
+   render fotográfico não conseguiria mais trocar de folha. */
+/* baixa e à esquerda: empilhada mais alta, a pilha tapava a barba e chegava
+   perto dos óculos, que é justamente o que não pode sumir */
+.or-sheets{position:absolute;left:-9%;bottom:2%;width:min(44%,176px);
+  aspect-ratio:5/3.4;z-index:2;pointer-events:none}
+.or-sheet{position:absolute;inset:0;background:var(--tinta);color:#fff;
+  padding:14px 15px 16px;display:flex;flex-direction:column;justify-content:space-between}
+.or-sheet.fim{background:var(--branco);color:var(--tinta)}
+.or-sheet .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(255,255,255,.6)}
+.or-sheet.fim .k{color:var(--tinta-40)}
+/* teto de 17px: "Engajamento" é a palavra mais longa; em 25px estourava a
+   folha e em 19px encostava exatamente na borda, sem folga nenhuma */
+.or-sheet .v{font-weight:900;font-size:clamp(14px,1.6vw,17px);letter-spacing:-.03em;line-height:1}
+.or-sheet.fim .v{color:var(--roxo)}
+.or-sheet .m{display:block;height:2px;background:rgba(255,255,255,.26)}
+.or-sheet.fim .m{background:var(--roxo)}
+/* sem JS a pilha viraria um monte de folhas empilhadas no mesmo lugar:
+   mostra só a última, que é a que carrega a pergunta */
+html:not(.anim-or) .or-sheet:not(.fim){display:none}
 
 .prob-foot{margin-top:clamp(30px,5vh,54px);padding-top:26px;border-top:1px solid var(--linha);
   display:flex;flex-wrap:wrap;gap:18px 40px;align-items:baseline}
@@ -455,7 +465,8 @@ html.no-anim .rv{opacity:1;transform:none}
   .foot{grid-template-columns:1fr}
   .prob-txt{max-width:none}
   .or-mascot{width:min(64%,210px)}
-  .or-card{width:min(52%,150px);padding:12px 13px 14px}
+  .or-sheets{width:min(56%,158px)}
+  .or-sheet{padding:11px 12px 13px}
   .panel-in{min-height:auto}
   .panel-in .idx{font-size:170px;bottom:-.28em}
 }
@@ -793,10 +804,13 @@ window.MYTHOS = {
 
           <img class="or-photo" id="orPhoto" alt="" />
 
-          <div class="or-card" id="orCard">
-            <span class="k">Relatório do mês</span>
-            <span class="v" id="orCardV">Alcance</span>
-            <span class="m"><i></i></span>
+          <!-- a coluna de texto já narra a cena; para o leitor de tela isto
+               aqui é repetição visual, então sai do fluxo de leitura -->
+          <div class="or-sheets" id="orSheets" aria-hidden="true">
+            <article class="or-sheet"><span class="k">Relatório 01</span><span class="v">Alcance</span><span class="m"></span></article>
+            <article class="or-sheet"><span class="k">Relatório 02</span><span class="v">Impressões</span><span class="m"></span></article>
+            <article class="or-sheet"><span class="k">Relatório 03</span><span class="v">Engajamento</span><span class="m"></span></article>
+            <article class="or-sheet fim"><span class="k">A pergunta</span><span class="v">Venda?</span><span class="m"></span></article>
           </div>
         </div>
       </figure>
@@ -1288,7 +1302,9 @@ document.fonts.ready.then(function(){
    não três animações soltas:
      a) a fala troca (crossfade vertical curto);
      b) as lentes enchem de roxo de baixo para cima — o oráculo lendo;
-     c) a tela que ele encara troca de métrica e vira roxa no veredito.
+     c) mais um relatório sobe na pilha, e o anterior fica embaixo.
+   A pilha é o argumento da seção virado gesto: relatório se acumula e
+   nenhum responde. No quarto tempo os três caem fora de uma vez.
    O busto sai inclinado para baixo (olhando a tela) e endireita: no fim
    ele está encarando quem lê, no exato momento da pergunta. */
 (function(){
@@ -1297,11 +1313,12 @@ document.fonts.ready.then(function(){
   var N = beats.length; if(!N) return;
   var bar   = document.getElementById('orBar');
   var count = document.getElementById('orCount');
-  var card  = document.getElementById('orCard');
-  var cardV = document.getElementById('orCardV');
+  var folhas= gsap.utils.toArray('#orSheets .or-sheet');
   var svg   = document.querySelector('#orMascot .or-svg, #orMascot .or-photo');
   var lentes= gsap.utils.toArray('#problema .or-lens-fill');
-  var TELA  = ['Alcance','Impressões','Engajamento','Venda?'];
+  // onde cada relatório para depois de subir: leque para a pilha ser lida
+  // como pilha, e não como um card só piscando
+  var POUSO = [{x:0,y:0,r:-7},{x:13,y:-11,r:-2},{x:26,y:-22,r:4},{x:14,y:-34,r:0}];
 
   // só agora as falas viram camadas: antes disto elas são 4 parágrafos
   document.documentElement.classList.add('anim-or');
@@ -1311,6 +1328,12 @@ document.fonts.ready.then(function(){
   // nunca zero: lente vazia vira buraco preto e o óculos deixa de ler
   gsap.set(lentes, {scaleY:.18, transformOrigin:'50% 100%'});
   gsap.set(svg, {rotation:-4, transformOrigin:'50% 78%'});
+  // o primeiro relatório já está na mesa; os outros ainda vão subir
+  folhas.forEach(function(f,i){
+    gsap.set(f, i === 0
+      ? {x:POUSO[0].x, y:POUSO[0].y, rotation:POUSO[0].r, autoAlpha:1}
+      : {x:POUSO[i].x - 10, y:POUSO[i].y + 150, rotation:POUSO[i].r - 12, autoAlpha:0});
+  });
 
   var ultima = -1;
   var tl = gsap.timeline({
@@ -1325,21 +1348,30 @@ document.fonts.ready.then(function(){
         if(i === ultima) return;
         ultima = i;
         count.textContent = ('0'+i).slice(-2) + ' — 0' + N;
-        cardV.textContent = TELA[i-1];
-        card.classList.toggle('on', i === N);
       }
     }
   });
 
   tl.to(lentes, {scaleY:1, duration:N-0.7}, 0)
     .to(svg, {rotation:0, duration:N-0.7}, 0);
+
   for(var i=1;i<N;i++){
     tl.to(beats[i-1], {autoAlpha:0, yPercent:-9, duration:.3}, i-0.15)
       .fromTo(beats[i], {autoAlpha:0, yPercent:9}, {autoAlpha:1, yPercent:0, duration:.3}, i-0.15);
+
+    if(i < N-1){
+      // sobe mais um relatório — e ele FICA. É a pilha crescendo.
+      tl.to(folhas[i], {x:POUSO[i].x, y:POUSO[i].y, rotation:POUSO[i].r, autoAlpha:1,
+                        duration:.42, ease:'power2.out'}, i-0.2);
+    } else {
+      // veredito: os três caem fora de uma vez e sobra a folha branca
+      tl.to(folhas.slice(0, N-1), {x:'-=150', y:'+=44', rotation:'-=16', autoAlpha:0,
+                                   duration:.4, stagger:.06, ease:'power2.in'}, i-0.25)
+        .to(folhas[i], {x:POUSO[i].x, y:POUSO[i].y, rotation:POUSO[i].r, autoAlpha:1,
+                        duration:.45, ease:'power3.out'}, i-0.05);
+    }
   }
-  // a tela se endireita e sobe junto com o veredito
-  tl.to(card, {rotation:0, yPercent:-9, duration:.45}, N-1)
-    .to({}, {duration:.45});
+  tl.to({}, {duration:.45});
 })();
 
 /* ============ 4. SERVIÇOS — pin horizontal + inclinação por velocidade ============ */
