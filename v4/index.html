@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mythos · A Leitura</title>
+<meta name="description" content="Agência de performance BR + PY. Tráfego, site, automação, conteúdo e dado numa estrutura só." />
+<meta name="theme-color" content="#5C068C" />
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%235C068C'/%3E%3Crect x='9' y='25' width='19' height='15' fill='%23FDFCFE'/%3E%3Crect x='36' y='25' width='19' height='15' fill='%23FDFCFE'/%3E%3Crect x='28' y='29' width='8' height='5' fill='%23FDFCFE'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600&family=DM+Serif+Display:ital@1&family=Montserrat:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================================
+   MYTHOS v4 — A LEITURA. Site-cinema na gramática da v2.
+   A construção é a do smash-burger-hq (canvas scrubado + cenas numeradas
+   + HUD persistente), mas a carcaça de identidade é outra: lá a página
+   finge ser uma CÂMERA; aqui ela finge ser o INSTRUMENTO DE LEITURA do
+   Oráculo — a planilha viva. HUD mono, contador de seção e de quadro,
+   régua com playhead. Zero glow, canto vivo, branco dominante.
+   Nenhum número inventado no HUD: só contador real de quadro/seção.
+   ========================================================================= */
+:root{
+  --branco:#FDFCFE; --osso:#F2EEF5; --tinta:#0A0710;
+  --tinta-60:rgba(10,7,16,.72); --tinta-40:rgba(10,7,16,.60);
+  --roxo:#5C068C; --roxo-esc:#3B0459;
+  --linha:rgba(10,7,16,.14); --linha-inv:rgba(255,255,255,.22);
+  --max:1320px;
+  --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-7:48px; --s-8:64px;
+  --mono:'Azeret Mono',ui-monospace,monospace;
+  --sans:'Montserrat',system-ui,sans-serif;
+  --hud-h:64px; --regua-h:44px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--branco);color:var(--tinta);line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img,canvas{max-width:100%;display:block}
+::selection{background:var(--roxo);color:#fff}
+:focus-visible{outline:3px solid var(--roxo);outline-offset:3px}
+.inv :focus-visible{outline-color:#fff}
+
+.wrap{max-width:var(--max);width:100%;margin:0 auto;padding:0 clamp(20px,4vw,56px);position:relative}
+.lbl{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  display:flex;align-items:center;gap:12px;color:var(--roxo)}
+.lbl::before{content:"";width:34px;height:2px;background:var(--roxo);flex:0 0 auto}
+.inv .lbl{color:#fff}
+.inv .lbl::before{background:#fff}
+h1,h2{font-weight:900;letter-spacing:-.045em;line-height:1.04;text-wrap:balance}
+/* padrão de cena: "// 02. O PROBLEMA" */
+.cena-titulo{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--tinta-40);display:block;margin-bottom:var(--s-3)}
+.cena-h{font-weight:900;letter-spacing:-.04em;font-size:clamp(26px,3.4vw,44px);line-height:1}
+.cena-h .n{color:var(--roxo)}
+.inv .cena-titulo{color:rgba(255,255,255,.55)}
+
+.mark{position:relative;display:inline-block;padding:0 .12em;isolation:isolate;color:#fff;
+  transition:color .4s ease .28s}
+.mark::before{content:"";position:absolute;inset:.06em -.02em .04em;background:var(--roxo);z-index:-1;
+  transform:scaleX(1);transform-origin:left center;transition:transform .85s cubic-bezier(.16,.84,.28,1)}
+html.arm .mark{color:var(--roxo)}
+html.arm .mark::before{transform:scaleX(0)}
+html.mark-go .mark{color:#fff}
+html.mark-go .mark::before{transform:scaleX(1)}
+
+.btn{display:inline-flex;align-items:center;gap:14px;cursor:pointer;border:0;
+  font-family:var(--sans);font-weight:800;font-size:15px;color:#fff;background:var(--roxo);
+  padding:20px 34px;position:relative;overflow:hidden;transition:color .25s ease}
+.btn .t{position:relative;z-index:2}
+.btn .arr{position:relative;z-index:2;transition:transform .35s cubic-bezier(.2,.75,.2,1)}
+.btn::after{content:"";position:absolute;inset:0;background:var(--tinta);transform:translateY(101%);
+  transition:transform .38s cubic-bezier(.2,.75,.2,1);z-index:1}
+.btn:hover::after{transform:translateY(0)}
+.btn:hover .arr{transform:translateX(7px)}
+
+/* ---------- cursor custom ---------- */
+@media(hover:hover) and (pointer:fine){
+  .cur-dot,.cur-ring{position:fixed;left:0;top:0;pointer-events:none;z-index:200;border-radius:50%;
+    mix-blend-mode:difference}
+  .cur-dot{width:8px;height:8px;background:#fff;transform:translate(-50%,-50%)}
+  .cur-ring{width:38px;height:38px;border:1.5px solid #fff;transform:translate(-50%,-50%);
+    transition:width .25s,height .25s,opacity .25s}
+  html.cur-on *{cursor:none}
+  .cur-ring.big{width:64px;height:64px;opacity:.6}
+}
+.cur-dot,.cur-ring{display:none}
+html.cur-on .cur-dot,html.cur-on .cur-ring{display:block}
+
+/* ---------- preloader ---------- */
+.loader{position:fixed;inset:0;z-index:100;background:var(--branco);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:26px}
+.loader svg{width:92px;height:92px}
+.loader .pct{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--tinta-40)}
+.loader .sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--tinta-40)}
+.loader-wipe{position:fixed;inset:0;z-index:99;background:var(--roxo);transform:scaleY(0);
+  transform-origin:center top;pointer-events:none}
+html.loaded .loader{display:none}
+
+/* ================= HUD — o instrumento de leitura =================
+   Tudo fixo, fora do smooth-wrapper. Mono, hairline, canto vivo.
+   Inverte de tinta sobre seção escura via .hud-dark no <html>. */
+.hud{position:fixed;z-index:60;font-family:var(--mono);color:var(--tinta);
+  transition:color .35s ease;pointer-events:none}
+html.hud-dark .hud{color:#fff}
+.hud a,.hud .btn{pointer-events:auto}
+
+.hud-top{top:0;left:0;right:0;height:var(--hud-h);display:flex;align-items:center;
+  justify-content:space-between;padding:0 clamp(16px,2.6vw,40px);
+  background:rgba(253,252,254,.86);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--linha)}
+html.hud-dark .hud-top{background:rgba(59,4,89,.86);border-color:var(--linha-inv)}
+.hud-brand{display:inline-flex;align-items:center;gap:11px;font-family:var(--sans);
+  font-weight:900;letter-spacing:.28em;font-size:15px}
+.gmark{width:24px;height:24px;flex:0 0 auto}
+.hud-nav{display:flex;gap:clamp(14px,2.2vw,34px);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.hud-nav a{opacity:.55;transition:opacity .2s}
+.hud-nav a:hover,.hud-nav a.on{opacity:1}
+.hud-nav a b{font-weight:600;color:var(--roxo)}
+html.hud-dark .hud-nav a b{color:#fff}
+.hud-cta{font-family:var(--sans);font-weight:800;font-size:12.5px;background:var(--roxo);
+  color:#fff;padding:11px 18px}
+
+.hud-status{top:var(--hud-h);left:0;right:0;display:flex;justify-content:space-between;
+  padding:0 clamp(16px,2.6vw,40px);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  opacity:.65}
+.hud-status .viva{display:flex;align-items:center;gap:8px}
+.hud-status .viva::before{content:"";width:7px;height:7px;background:var(--roxo);border-radius:50%;
+  animation:viva 1.6s ease-in-out infinite}
+html.hud-dark .hud-status .viva::before{background:#fff}
+@keyframes viva{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* cantos de enquadramento */
+.hud-crop{width:26px;height:26px;border:2px solid currentColor;opacity:.5}
+.hud-crop.tl{top:calc(var(--hud-h) + 26px);left:clamp(16px,2.6vw,40px);border-right:0;border-bottom:0;position:fixed}
+.hud-crop.tr{top:calc(var(--hud-h) + 26px);right:clamp(16px,2.6vw,40px);border-left:0;border-bottom:0;position:fixed}
+.hud-crop.bl{bottom:calc(var(--regua-h) + 18px);left:clamp(16px,2.6vw,40px);border-right:0;border-top:0;position:fixed}
+.hud-crop.br{bottom:calc(var(--regua-h) + 18px);right:clamp(16px,2.6vw,40px);border-left:0;border-top:0;position:fixed}
+
+/* régua de leitura no rodapé: ticks + playhead losango */
+.hud-regua{left:0;right:0;bottom:0;height:var(--regua-h);display:flex;align-items:center;
+  padding:0 clamp(16px,2.6vw,40px);gap:18px;
+  background:linear-gradient(rgba(253,252,254,0),rgba(253,252,254,.92))}
+html.hud-dark .hud-regua{background:linear-gradient(rgba(10,7,16,0),rgba(10,7,16,.6))}
+.regua-cena{font-size:10px;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;
+  border:1px solid currentColor;padding:5px 9px;opacity:.8}
+.regua-trilho{flex:1;position:relative;height:14px;
+  background:repeating-linear-gradient(90deg,currentColor 0 1px,transparent 1px 12px);opacity:.85}
+.regua-trilho::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 59px,currentColor 59px 61px);opacity:.6}
+.regua-ph{position:absolute;top:50%;width:11px;height:11px;background:var(--roxo);
+  transform:translate(-50%,-50%) rotate(45deg);left:0}
+html.hud-dark .regua-ph{background:#fff}
+.regua-quadro{font-size:10px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;opacity:.8}
+
+/* dica de rolagem por cena */
+.dica{position:absolute;left:50%;bottom:calc(var(--regua-h) + 22px);transform:translateX(-50%);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--tinta-40);display:flex;align-items:center;gap:10px;z-index:5}
+.inv .dica{color:rgba(255,255,255,.6)}
+.dica::after{content:"";width:2px;height:30px;background:var(--roxo)}
+.inv .dica::after{background:#fff}
+
+/* ============================ CENA 01 · A LEITURA ============================ */
+.hero{position:relative;background:var(--branco)}
+.hero-stage{min-height:100vh;display:flex;align-items:center;padding-top:var(--hud-h)}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,72px);align-items:center;width:100%}
+.h-xl{font-size:clamp(38px,6.4vw,98px)}
+.hl{padding-bottom:.2em}
+.hero .lead{font-size:clamp(16px,1.35vw,20px);color:var(--tinta-60);max-width:44ch;font-weight:500;
+  margin-top:clamp(22px,3.5vh,40px)}
+.hero .ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:clamp(24px,4vh,44px)}
+.hero-figure{position:relative;display:flex;justify-content:center}
+.hero-figure::before{content:"";position:absolute;left:10%;right:-100vw;top:-100vh;bottom:-100vh;
+  background:var(--roxo-esc)}
+.hero-plate{position:relative;z-index:1;background:var(--branco);width:min(100%,560px);
+  padding:clamp(14px,1.6vw,22px) clamp(14px,1.6vw,22px) 0}
+.hero-plate .cap{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tinta-40);padding:12px 2px 14px}
+.hero-plate .cap b{color:var(--roxo);font-weight:600}
+.hero-seq{position:relative;width:100%;aspect-ratio:896/1008}
+.hero-seq canvas,.hero-seq img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+
+/* ============================ CENA 02 · O PROBLEMA ============================ */
+#problema{background:var(--osso)}
+.prob-stage{min-height:100vh;display:flex;align-items:center;overflow:hidden;
+  padding:calc(var(--hud-h) + var(--s-6)) 0 calc(var(--regua-h) + var(--s-5))}
+.or-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(20px,4vw,72px);align-items:center;width:100%}
+.or-beats{position:relative;margin-top:var(--s-6)}
+html.anim .or-beats{min-height:clamp(180px,23vh,266px)}
+html.anim .or-beat{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center}
+.or-beat+.or-beat{margin-top:var(--s-6)}
+html.anim .or-beat+.or-beat{margin-top:0}
+.or-beat .bk{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--roxo);display:block;margin-bottom:var(--s-4)}
+.prob-txt{font-weight:900;letter-spacing:-.04em;line-height:1.06;font-size:clamp(24px,3.6vw,50px);max-width:17ch}
+.prob-punch{color:var(--roxo)}
+.or-rail{display:flex;align-items:center;gap:20px;margin-top:clamp(22px,4vh,44px)}
+.or-count{font-family:var(--mono);font-size:12.5px;letter-spacing:.18em;color:var(--tinta-40)}
+.or-bar{flex:1;max-width:300px;height:3px;background:var(--linha);position:relative}
+.or-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--roxo);display:block}
+html.no-anim .or-bar i{width:100%}
+.or-figure{position:relative;display:flex;justify-content:center;margin:0}
+.or-figure::before{content:"";position:absolute;left:7%;right:-100vw;top:-100vh;bottom:-100vh;
+  background:var(--roxo-esc)}
+.or-seq{position:relative;z-index:1;width:min(100%,430px);aspect-ratio:720/1280}
+.or-seq canvas,.or-seq img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.or-sheets{position:absolute;left:2%;top:24%;width:min(38%,158px);aspect-ratio:5/3.4;z-index:2;pointer-events:none}
+.or-sheet{position:absolute;inset:0;background:var(--tinta);color:#fff;
+  padding:12px 13px 14px;display:flex;flex-direction:column;justify-content:space-between}
+.or-sheet.fim{background:var(--branco);color:var(--tinta)}
+.or-sheet .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:rgba(255,255,255,.6)}
+.or-sheet.fim .k{color:var(--tinta-40)}
+.or-sheet .v{font-weight:900;font-size:clamp(13px,1.4vw,16px);letter-spacing:-.03em;line-height:1}
+.or-sheet.fim .v{color:var(--roxo)}
+.or-sheet .m{display:block;height:2px;background:rgba(255,255,255,.26)}
+.or-sheet.fim .m{background:var(--roxo)}
+html:not(.anim) .or-sheet:not(.fim){display:none}
+
+/* ============================ CENA 03 · A PROVA ============================
+   O termômetro da referência vira o contador de qualificação:
+   5,49% -> 51,36% subindo com o scroll. O único número da página. */
+#prova{background:var(--branco)}
+.prova-stage{min-height:100vh;display:flex;align-items:center;overflow:hidden;
+  padding:calc(var(--hud-h) + var(--s-6)) 0 calc(var(--regua-h) + var(--s-5))}
+.prova-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(20px,4vw,72px);align-items:center;width:100%}
+.prova-num{font-weight:900;letter-spacing:-.05em;line-height:.9;
+  font-size:clamp(72px,13vw,210px);color:var(--roxo);font-variant-numeric:tabular-nums}
+.prova-num small{display:block;font-family:var(--mono);font-weight:600;font-size:12px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--tinta-40);margin-top:18px}
+.prova-bar{height:14px;background:var(--osso);position:relative;overflow:hidden;margin-top:var(--s-6);max-width:560px}
+.prova-bar i{position:absolute;inset:0 auto 0 0;width:5.49%;background:var(--roxo)}
+.prova-meta{margin-top:var(--s-6);max-width:52ch}
+.prova-meta dt{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--tinta-40);margin-top:18px}
+.prova-meta dd{font-size:15.5px;font-weight:600;margin-top:6px;color:var(--tinta-60)}
+.prova-note{font-family:var(--mono);font-size:12px;color:var(--tinta-40);margin-top:var(--s-6);
+  padding-top:var(--s-5);border-top:1px solid var(--linha);max-width:58ch}
+.prova-figure{position:relative;display:flex;justify-content:center}
+.prova-figure::before{content:"";position:absolute;left:10%;right:-100vw;top:-100vh;bottom:-100vh;
+  background:var(--osso)}
+.prova-seq{position:relative;z-index:1;width:min(100%,400px);aspect-ratio:720/1280}
+.prova-seq canvas,.prova-seq img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+
+/* ============================ CENA 04 · A PERGUNTA ============================ */
+#cta{background:var(--roxo);color:#fff;padding:clamp(84px,14vh,180px) 0 clamp(84px,12vh,150px)}
+#cta h2{font-size:clamp(30px,5vw,72px);max-width:16ch;margin-top:var(--s-5)}
+#cta .lead{color:rgba(255,255,255,.72);max-width:46ch;font-weight:500;margin-top:var(--s-5);
+  font-size:clamp(16px,1.35vw,20px)}
+#cta .btn{background:#fff;color:var(--roxo);margin-top:var(--s-6)}
+#cta .btn::after{background:var(--tinta)}
+#cta .btn:hover{color:#fff}
+.reassure{list-style:none;display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:var(--s-5)}
+.reassure li{font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:rgba(255,255,255,.72);
+  display:flex;align-items:center;gap:7px}
+.reassure li::before{content:"";width:6px;height:6px;background:#fff;flex:0 0 auto;transform:rotate(45deg)}
+
+footer{background:var(--tinta);color:#fff;padding:30px 0 calc(var(--regua-h) + 20px)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11.5px;color:rgba(255,255,255,.62)}
+
+.rv{opacity:0;transform:translateY(26px)}
+html.no-anim .rv{opacity:1;transform:none}
+
+/* ---------- responsivo ---------- */
+@media(max-width:900px){
+  .hud-nav,.hud-status,.hud-crop{display:none}
+  .hero-grid,.or-grid,.prova-grid{grid-template-columns:1fr;gap:clamp(18px,3vh,30px)}
+  .hero-figure,.or-figure,.prova-figure{order:-1}
+  .hero-figure::before,.or-figure::before,.prova-figure::before{left:-100vw;right:-100vw}
+  .hero-plate{width:min(72%,340px);padding:10px 10px 0}
+  .or-seq{width:min(52%,235px)}
+  .prova-seq{width:min(48%,215px)}
+  html.anim .or-beats{min-height:clamp(160px,22vh,220px)}
+  .or-sheets{width:min(34%,118px)}
+  .or-sheet{padding:10px 11px 12px}
+  .dica{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html.no-anim *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
+
+<script>
+window.MYTHOS_FORCAR_ANIMACAO = true;
+(function(){
+  var quer = window.MYTHOS_FORCAR_ANIMACAO ||
+             !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!quer) return;
+  document.documentElement.classList.add('arm');
+  setTimeout(function(){ document.documentElement.classList.add('mark-go'); }, 3000);
+})();
+</script>
+</head>
+<body>
+
+<!-- ---------- preloader ---------- -->
+<div class="loader" id="loader">
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <rect width="64" height="64" fill="#5C068C"/>
+    <rect x="9" y="25" width="19" height="15" fill="#2A0340"/>
+    <rect x="36" y="25" width="19" height="15" fill="#2A0340"/>
+    <rect x="28" y="29" width="8" height="5" fill="#FDFCFE"/>
+    <g id="lensFill">
+      <rect x="9" y="25" width="19" height="15" fill="#FDFCFE"/>
+      <rect x="36" y="25" width="19" height="15" fill="#FDFCFE"/>
+    </g>
+  </svg>
+  <span class="pct" id="loaderPct">0%</span>
+  <span class="sub">Iniciando a leitura</span>
+</div>
+<div class="loader-wipe" id="loaderWipe"></div>
+
+<div class="cur-dot" id="curDot"></div>
+<div class="cur-ring" id="curRing"></div>
+
+<!-- ================= HUD ================= -->
+<div class="hud hud-top" id="hudTop">
+  <a href="#top" class="hud-brand">
+    <svg class="gmark" viewBox="0 0 64 64" aria-hidden="true">
+      <rect width="64" height="64" fill="#5C068C"/>
+      <rect x="9" y="25" width="19" height="15" fill="#FDFCFE"/>
+      <rect x="36" y="25" width="19" height="15" fill="#FDFCFE"/>
+      <rect x="28" y="29" width="8" height="5" fill="#FDFCFE"/>
+    </svg>
+    MYTHOS
+  </a>
+  <nav class="hud-nav" id="hudNav">
+    <a href="#top" data-cena="1"><b>01.</b> A Leitura</a>
+    <a href="#problema" data-cena="2"><b>02.</b> O Problema</a>
+    <a href="#prova" data-cena="3"><b>03.</b> A Prova</a>
+    <a href="#cta" data-cena="4"><b>04.</b> A Pergunta</a>
+  </nav>
+  <a href="#cta" class="hud-cta">Falar com a Mythos</a>
+</div>
+<div class="hud hud-status">
+  <span class="viva">Leitura ao vivo · <span id="hudTempo">00:00</span></span>
+  <span>BR ▸ PY · Tráfego · Sites · Automação · Social · Dados</span>
+</div>
+<i class="hud hud-crop tl"></i><i class="hud hud-crop tr"></i>
+<i class="hud hud-crop bl"></i><i class="hud hud-crop br"></i>
+<div class="hud hud-regua">
+  <span class="regua-cena" id="reguaCena">01 · A LEITURA</span>
+  <span class="regua-trilho"><i class="regua-ph" id="reguaPh"></i></span>
+  <span class="regua-quadro" id="reguaQuadro">SEÇÃO 01/04 · QUADRO 001/037</span>
+</div>
+
+<div id="smooth-wrapper">
+<div id="smooth-content">
+
+<!-- ============ CENA 01 · A LEITURA ============ -->
+<section class="hero" id="top">
+  <div class="hero-stage" id="heroStage">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="lbl rv">BR &nbsp;▸&nbsp; PY · Agência de performance</span>
+        <h1 class="h-xl" id="heroH1" style="margin-top:var(--s-5)">A gente não vende alcance.<br>Vende <span class="mark">faturamento.</span></h1>
+        <p class="lead rv">Tráfego, site, automação, conteúdo e dado numa estrutura só —
+          operada por quem sobe campanha todo dia, dos dois lados da fronteira.</p>
+        <div class="ctas rv">
+          <a href="#cta" class="btn mag"><span class="t">Quero um diagnóstico</span> <span class="arr">→</span></a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <div class="hero-plate">
+          <div class="hero-seq" id="heroSeq">
+            <img src="frames/b2/001.webp" alt="O Oráculo, mascote da Mythos: busto grego de óculos roxos" id="heroPoster">
+            <canvas id="heroCanvas" aria-hidden="true"></canvas>
+          </div>
+          <div class="cap"><span style="white-space:nowrap"><b>O ORÁCULO</b> · mascote da casa</span><span style="text-transform:none;white-space:nowrap">μῦθος · 2026</span></div>
+        </div>
+      </figure>
+    </div>
+    <div class="dica" aria-hidden="true">Role para começar a leitura</div>
+  </div>
+</section>
+
+<!-- ============ CENA 02 · O PROBLEMA ============ -->
+<section id="problema" class="inv">
+  <div class="prob-stage" id="probStage">
+    <div class="wrap or-grid">
+      <div>
+        <span class="cena-titulo">Diagnóstico // o ciclo do relatório</span>
+        <h2 class="cena-h"><span class="n">// 02.</span> O PROBLEMA</h2>
+        <div class="or-beats" id="orBeats">
+          <div class="or-beat">
+            <span class="bk">O relatório</span>
+            <p class="prob-txt">Você já pagou por relatório bonito.</p>
+          </div>
+          <div class="or-beat">
+            <span class="bk">A métrica</span>
+            <p class="prob-txt">Já ouviu que o alcance cresceu.</p>
+          </div>
+          <div class="or-beat">
+            <span class="bk">O aplauso</span>
+            <p class="prob-txt">Já viu o post bombar.</p>
+          </div>
+          <div class="or-beat">
+            <span class="bk">A conta</span>
+            <p class="prob-txt">E no fim do mês a pergunta continuou a mesma:
+              <span class="prob-punch">quanto disso virou venda?</span></p>
+          </div>
+        </div>
+        <div class="or-rail">
+          <span class="or-count" id="orCount">01 — 04</span>
+          <span class="or-bar"><i id="orBar"></i></span>
+        </div>
+      </div>
+      <figure class="or-figure">
+        <div class="or-seq" id="orSeq">
+          <img src="frames/a2/001.webp" alt="" id="orPoster">
+          <canvas id="orCanvas" aria-hidden="true"></canvas>
+          <div class="or-sheets" id="orSheets" aria-hidden="true">
+            <article class="or-sheet"><span class="k">Relatório 01</span><span class="v">Alcance</span><span class="m"></span></article>
+            <article class="or-sheet"><span class="k">Relatório 02</span><span class="v">Impressões</span><span class="m"></span></article>
+            <article class="or-sheet"><span class="k">Relatório 03</span><span class="v">Engajamento</span><span class="m"></span></article>
+            <article class="or-sheet fim"><span class="k">A pergunta</span><span class="v">Venda?</span><span class="m"></span></article>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CENA 03 · A PROVA ============
+     "Role para qualificar": o contador sobe de 5,49% a 51,36%
+     preso ao scroll. Único número do site — e é real. -->
+<section id="prova">
+  <div class="prova-stage" id="provaStage">
+    <div class="wrap prova-grid">
+      <div>
+        <span class="cena-titulo">Prova // conta real, número do Google Ads</span>
+        <h2 class="cena-h"><span class="n">// 03.</span> A PROVA</h2>
+        <div class="prova-num" id="provaNum">5,49%
+          <small>Leads qualificados · empresa B2B de facilities</small>
+        </div>
+        <div class="prova-bar"><i id="provaBar"></i></div>
+        <dl class="prova-meta">
+          <dt>O problema</dt>
+          <dd>A conta gerava lead em volume, mas a maioria era candidato a vaga de emprego.</dd>
+          <dt>O que a estrutura fez</dt>
+          <dd>Negativas, keywords B2B e qualificação por estágio realimentando a campanha — a conta aprendeu quem compra.</dd>
+        </dl>
+        <p class="prova-note">Case real, de conta real — não média de mercado nem projeção.
+          Resultado passado não garante o seu.</p>
+      </div>
+      <figure class="prova-figure">
+        <div class="prova-seq" id="provaSeq">
+          <img src="frames/a9/001.webp" alt="" id="provaPoster">
+          <canvas id="provaCanvas" aria-hidden="true"></canvas>
+        </div>
+      </figure>
+    </div>
+    <div class="dica" aria-hidden="true">Role para qualificar</div>
+  </div>
+</section>
+
+<!-- ============ CENA 04 · A PERGUNTA ============ -->
+<section id="cta" class="inv">
+  <div class="wrap">
+    <span class="cena-titulo" style="color:rgba(255,255,255,.55)">Contato // a leitura da sua conta</span>
+    <h2 class="rv">Vamos olhar os seus números?</h2>
+    <p class="lead rv">A gente devolve um diagnóstico inicial da sua estrutura digital —
+      de graça, e sem enrolação se o problema não for tráfego.</p>
+    <a class="btn mag rv" href="https://igorarienti-a11y.github.io/mythos-lp/v2/#contato">
+      <span class="t">Quero o diagnóstico</span> <span class="arr">→</span></a>
+    <ul class="reassure rv">
+      <li>Resposta em até 1 dia útil</li>
+      <li>Se o problema não for tráfego, a gente diz</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Mythos · Agência de performance BR + PY</span>
+    <span>@mythosagency_</span>
+  </div>
+</footer>
+
+</div><!-- /#smooth-content -->
+</div><!-- /#smooth-wrapper -->
+
+<script src="../v2/lib/gsap.min.js"></script>
+<script src="../v2/lib/ScrollTrigger.min.js"></script>
+<script src="../v2/lib/ScrollSmoother.min.js"></script>
+<script src="../v2/lib/SplitText.min.js"></script>
+
+<script>
+(function(){
+"use strict";
+
+var prefereMenos = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var ANIMA = window.MYTHOS_FORCAR_ANIMACAO ? true : !prefereMenos;
+var TEM_GSAP = !!(window.gsap && window.ScrollTrigger);
+var SALVA_DADOS = !!(navigator.connection && navigator.connection.saveData);
+var CINEMA = ANIMA && TEM_GSAP && !SALVA_DADOS;
+
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+/* ===================== sequências ===================== */
+var SEQS = {
+  b2:{dir:'frames/b2/', n:37},
+  a2:{dir:'frames/a2/', n:25},
+  a4:{dir:'frames/a4/', n:25},
+  a3:{dir:'frames/a3/', n:25},
+  a5:{dir:'frames/a5/', n:33},
+  a9:{dir:'frames/a9/', n:25}
+};
+function nome(i){ return ('00'+(i+1)).slice(-3)+'.webp'; }
+function carregaSeq(key, aoProgredir){
+  var s = SEQS[key]; s.imgs = []; s.ok = 0;
+  return new Promise(function(res){
+    for(var i=0;i<s.n;i++)(function(i){
+      var im = new Image();
+      im.onload = im.onerror = function(){
+        s.ok++; if(aoProgredir) aoProgredir(s.ok, s.n);
+        if(s.ok === s.n) res(s);
+      };
+      im.src = s.dir + nome(i);
+      s.imgs[i] = im;
+    })(i);
+  });
+}
+function pintor(canvas){
+  var ctx = canvas.getContext('2d');
+  var w=0,h=0;
+  function medir(){
+    var r = canvas.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio||1, 2);
+    w = Math.round(r.width*dpr); h = Math.round(r.height*dpr);
+    if(canvas.width!==w){ canvas.width=w; canvas.height=h; }
+  }
+  medir();
+  window.addEventListener('resize', medir);
+  return function(seq, p){
+    if(!seq.imgs || seq.ok < seq.n) return -1;
+    var i = Math.max(0, Math.min(seq.n-1, Math.round(p*(seq.n-1))));
+    var im = seq.imgs[i]; if(!im || !im.naturalWidth) return -1;
+    medir();
+    var esc = Math.min(w/im.naturalWidth, h/im.naturalHeight);
+    var dw = im.naturalWidth*esc, dh = im.naturalHeight*esc;
+    ctx.clearRect(0,0,w,h);
+    ctx.drawImage(im, (w-dw)/2, (h-dh)/2, dw, dh);
+    return i;
+  };
+}
+
+/* ===================== HUD: régua, cena e cronômetro ===================== */
+var reguaPh = document.getElementById('reguaPh');
+var reguaCena = document.getElementById('reguaCena');
+var reguaQuadro = document.getElementById('reguaQuadro');
+var hudNav = document.getElementById('hudNav');
+var CENAS = ['01 · A LEITURA','02 · O PROBLEMA','03 · A PROVA','04 · A PERGUNTA'];
+var cenaAtual = 1, quadroAtual = 1, seqAtual = 'b2';
+function hudQuadro(){
+  var s = SEQS[seqAtual];
+  reguaQuadro.textContent = 'SEÇÃO 0'+cenaAtual+'/04 · QUADRO '+('00'+quadroAtual).slice(-3)+'/'+('00'+s.n).slice(-3);
+}
+function hudCena(n, seq){
+  if(n===cenaAtual && !seq) return;
+  cenaAtual = n; if(seq) seqAtual = seq;
+  reguaCena.textContent = CENAS[n-1];
+  hudNav.querySelectorAll('a').forEach(function(a){
+    a.classList.toggle('on', +a.dataset.cena === n);
+  });
+  hudQuadro();
+}
+/* cronômetro da "leitura ao vivo" */
+(function(){
+  var el = document.getElementById('hudTempo'), t0 = Date.now();
+  setInterval(function(){
+    var s = Math.floor((Date.now()-t0)/1000);
+    el.textContent = ('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);
+  }, 1000);
+})();
+
+/* ===================== fallback ===================== */
+if(!CINEMA){
+  document.documentElement.classList.add('no-anim');
+  document.documentElement.classList.add('loaded');
+  document.querySelectorAll('.rv').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; });
+  document.querySelectorAll('canvas').forEach(function(c){ c.style.display='none'; });
+  document.getElementById('provaNum').firstChild.textContent = '51,36%';
+  document.getElementById('provaBar').style.width = '51.36%';
+  return;
+}
+document.documentElement.classList.add('anim');
+
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
+
+var QA_SEM_SMOOTHER = false;
+var smoother = QA_SEM_SMOOTHER ? null : ScrollSmoother.create({
+  wrapper:'#smooth-wrapper', content:'#smooth-content',
+  smooth:1.15, effects:false, smoothTouch:false, normalizeScroll:true, ignoreMobileResize:true
+});
+if(smoother) smoother.scrollTop(0);
+
+/* ===================== preloader ===================== */
+var lens = document.getElementById('lensFill');
+var pct = document.getElementById('loaderPct');
+gsap.set(lens, {scaleY:0, transformOrigin:'50% 100%'});
+var heroPronto = carregaSeq('b2', function(ok,n){
+  var p = ok/n;
+  pct.textContent = Math.round(p*100)+'%';
+  gsap.to(lens, {scaleY:p, duration:.3, overwrite:true});
+});
+
+var pintaHero  = pintor(document.getElementById('heroCanvas'));
+var pintaOr    = pintor(document.getElementById('orCanvas'));
+var pintaProva = pintor(document.getElementById('provaCanvas'));
+
+heroPronto.then(function(seq){
+  pintaHero(seq, 0);
+  document.getElementById('heroPoster').style.visibility='hidden';
+  var wipe = document.getElementById('loaderWipe');
+  gsap.timeline()
+    .to(wipe, {scaleY:1, duration:.5, ease:'power3.in'})
+    .add(function(){ document.documentElement.classList.add('loaded'); })
+    .set(wipe, {transformOrigin:'center bottom'})
+    .to(wipe, {scaleY:0, duration:.6, ease:'power3.out'})
+    .add(introHero, '-=0.35');
+  ['a2','a4','a3','a5','a9'].reduce(function(pr,k){
+    return pr.then(function(){ return carregaSeq(k); });
+  }, Promise.resolve()).then(function(){
+    pintaOr(SEQS.a2, 0);
+    pintaProva(SEQS.a9, 0);
+    document.getElementById('orPoster').style.visibility='hidden';
+    document.getElementById('provaPoster').style.visibility='hidden';
+  });
+});
+
+function introHero(){
+  document.fonts.ready.then(function(){
+    SplitText.create('#heroH1', {
+      type:'lines', mask:'lines', autoSplit:true, linesClass:'hl',
+      onSplit:function(self){
+        return gsap.timeline()
+          .from(self.lines, {yPercent:130, duration:1, ease:'expo.out', stagger:.11})
+          .add(function(){ document.documentElement.classList.add('mark-go'); }, '-=0.15');
+      }
+    });
+    gsap.to('.rv', {opacity:1, y:0, duration:.85, ease:'power3.out', stagger:.08, delay:.2});
+    ScrollTrigger.refresh();
+  });
+}
+
+/* ===================== cena 01: o retrato scruba ===================== */
+ScrollTrigger.create({
+  trigger:'#heroStage', start:'top top', end:'+=120%',
+  pin:true, scrub:.5, anticipatePin:1, invalidateOnRefresh:true,
+  onUpdate:function(self){
+    var q = pintaHero(SEQS.b2, Math.min(1, self.progress*1.25));
+    if(q>=0){ quadroAtual=q+1; hudCena(1,'b2'); }
+  }
+});
+
+/* ===================== régua + inversão do HUD ===================== */
+ScrollTrigger.create({
+  start:0, end:'max',
+  onUpdate:function(self){
+    var trilho = reguaPh.parentElement.getBoundingClientRect().width;
+    reguaPh.style.left = (self.progress*trilho).toFixed(1)+'px';
+  }
+});
+[['#problema'],['#cta'],['footer']].forEach(function(par){
+  ScrollTrigger.create({
+    trigger:par[0], start:'top 40%', end:'bottom 40%',
+    onToggle:function(self){
+      /* o problema é osso (claro), mas a coluna do busto é roxa: mantém HUD claro.
+         só CTA e footer invertem de verdade */
+      if(par[0] !== '#problema')
+        document.documentElement.classList.toggle('hud-dark', self.isActive);
+    }
+  });
+});
+ScrollTrigger.create({trigger:'#cta', start:'top 60%', onEnter:function(){ hudCena(4,'a9'); },
+  onLeaveBack:function(){ hudCena(3,'a9'); }});
+
+/* ===================== cena 02: o problema ===================== */
+(function(){
+  var beats = gsap.utils.toArray('#orBeats .or-beat');
+  var N = beats.length;
+  var bar = document.getElementById('orBar');
+  var count = document.getElementById('orCount');
+  var folhas = gsap.utils.toArray('#orSheets .or-sheet');
+  var CLIPES = ['a2','a4','a3','a5'];
+  var POUSO = [{x:0,y:0,r:-7},{x:12,y:-10,r:-2},{x:24,y:-20,r:4},{x:12,y:-56,r:0}];
+
+  gsap.set(beats, {autoAlpha:0, yPercent:9});
+  gsap.set(beats[0], {autoAlpha:1, yPercent:0});
+  folhas.forEach(function(f,i){
+    gsap.set(f, i===0
+      ? {x:POUSO[0].x, y:POUSO[0].y, rotation:POUSO[0].r, autoAlpha:1}
+      : {x:POUSO[i].x-10, y:POUSO[i].y+140, rotation:POUSO[i].r-12, autoAlpha:0});
+  });
+
+  var ultima = -1;
+  var tl = gsap.timeline({
+    defaults:{ease:'none'},
+    scrollTrigger:{
+      trigger:'#probStage', start:'top top', end:'+='+(N*82)+'%',
+      pin:true, scrub:.5, anticipatePin:1, invalidateOnRefresh:true,
+      onUpdate:function(self){
+        var p = self.progress;
+        bar.style.width = (p*100).toFixed(2)+'%';
+        var beat = Math.min(N-1, Math.floor(p*N));
+        var local = p*N - beat;
+        var q = pintaOr(SEQS[CLIPES[beat]], local);
+        if(q>=0){ quadroAtual=q+1; hudCena(2, CLIPES[beat]); }
+        var i = beat+1;
+        if(i!==ultima){ ultima=i; count.textContent = ('0'+i).slice(-2)+' — 0'+N; }
+      }
+    }
+  });
+
+  for(var i=1;i<N;i++){
+    tl.to(beats[i-1], {autoAlpha:0, yPercent:-9, duration:.3}, i-0.15)
+      .fromTo(beats[i], {autoAlpha:0, yPercent:9}, {autoAlpha:1, yPercent:0, duration:.3}, i-0.15);
+    if(i < N-1){
+      tl.to(folhas[i], {x:POUSO[i].x, y:POUSO[i].y, rotation:POUSO[i].r, autoAlpha:1,
+                        duration:.42, ease:'power2.out'}, i-0.2);
+    } else {
+      /* a mão vira em ~30% do clipe a5 → as folhas caem em 3.22 da timeline */
+      tl.to(folhas.slice(0,N-1), {x:'-=170', y:'+=80', rotation:'-=20', autoAlpha:0,
+                                  duration:.35, stagger:.05, ease:'power2.in'}, i+0.22)
+        .to(folhas[i], {x:POUSO[i].x, y:POUSO[i].y, rotation:POUSO[i].r, autoAlpha:1,
+                        duration:.4, ease:'power3.out'}, i+0.45);
+    }
+  }
+  tl.to({}, {duration:.5});
+})();
+
+/* ===================== cena 03: a prova ===================== */
+(function(){
+  var num = document.getElementById('provaNum').firstChild;
+  var bar = document.getElementById('provaBar');
+  var o = {v:5.49};
+  ScrollTrigger.create({
+    trigger:'#provaStage', start:'top top', end:'+=160%',
+    pin:true, scrub:.4, anticipatePin:1, invalidateOnRefresh:true,
+    onUpdate:function(self){
+      var p = self.progress;
+      /* contador sobe nos primeiros 70%; o Oráculo confirma nos 30% finais */
+      var pv = Math.min(1, p/.7);
+      o.v = 5.49 + (51.36-5.49)*pv;
+      num.textContent = o.v.toFixed(2).replace('.',',')+'%';
+      bar.style.width = o.v+'%';
+      var pn = Math.max(0, (p-.7)/.3);
+      var q = pintaProva(SEQS.a9, pn);
+      if(q>=0){ quadroAtual=q+1; hudCena(3,'a9'); }
+    }
+  });
+})();
+
+/* ===================== cursor + magnetic ===================== */
+(function(){
+  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  document.documentElement.classList.add('cur-on');
+  var dot = document.getElementById('curDot'), ring = document.getElementById('curRing');
+  var mx=innerWidth/2, my=innerHeight/2, rx=mx, ry=my;
+  addEventListener('mousemove', function(e){ mx=e.clientX; my=e.clientY;
+    dot.style.transform='translate('+(mx-4)+'px,'+(my-4)+'px)'; });
+  gsap.ticker.add(function(){
+    rx += (mx-rx)*.14; ry += (my-ry)*.14;
+    ring.style.transform='translate('+(rx-19)+'px,'+(ry-19)+'px)';
+  });
+  document.querySelectorAll('a,button').forEach(function(el){
+    el.addEventListener('mouseenter', function(){ ring.classList.add('big'); });
+    el.addEventListener('mouseleave', function(){ ring.classList.remove('big'); });
+  });
+  document.querySelectorAll('.mag').forEach(function(el){
+    el.addEventListener('mousemove', function(e){
+      var r = el.getBoundingClientRect();
+      gsap.to(el, {x:(e.clientX-r.left-r.width/2)*.22, y:(e.clientY-r.top-r.height/2)*.22,
+                   duration:.4, ease:'power2.out'});
+    });
+    el.addEventListener('mouseleave', function(){
+      gsap.to(el, {x:0, y:0, duration:.5, ease:'elastic.out(1,.4)'});
+    });
+  });
+})();
+
+document.fonts.ready.then(function(){ ScrollTrigger.refresh(); });
+
+})();
+</script>
+</body>
+</html>
